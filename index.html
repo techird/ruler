@@ -78,11 +78,37 @@
 </head>
 <body>
     <div id="commands">
-        <textarea id="command-input" placeholder="Command Here">pd 0 0 O
-pd 100 0 X
-pd 0 100 Y
-ld O X OX
-ld O Y OY</textarea>
+        <textarea id="command-input" placeholder="Command Here">// 水平辅助线
+pd -100 0 x-left&
+pd 100 0 x-right&
+ld x-left x-right x
+
+// 两个圆是点定义
+pd -223 0 A
+pd -440 0 A1
+pd 230 0 B
+pd 140 0 B1
+
+// 取半径
+dd A A1 ra
+dd B B1 rb
+
+// 定义圆弧
+ad A ra Ca!red
+ad B rb Cb!blue
+
+// 作公切线
+bp A B M //中点
+ad2 M A C1
+ad A rb C2
+lai x C2 0 D
+ad3 A A1 D C3
+aai C3 C1 0 P
+ld A P AP
+lai AP Ca 0 Q!red
+pl AP Q T!green
+lai T Cb 0 F!blue
+</textarea>
     </div>
     <div id="paper">
         <canvas></canvas>
