@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Ruler Example</title>
+    <script type="text/javascript" src="src/ruler.js"></script>
+    <script type="text/javascript" src="src/steps/base/define_arc.js"></script>
+    <script type="text/javascript" src="src/steps/base/define_distance.js"></script>
+    <script type="text/javascript" src="src/steps/base/define_line.js"></script>
+    <script type="text/javascript" src="src/steps/base/define_point.js"></script>
+    <script type="text/javascript" src="src/steps/base/intersect_arc_arc.js"></script>
+    <script type="text/javascript" src="src/steps/base/intersect_line_arc.js"></script>
+    <script type="text/javascript" src="src/steps/base/intersect_line_line.js"></script>
+    <script type="text/javascript" src="src/steps/extend/perpendicular_bisector.js"></script>
+    <script type="text/javascript" src="src/steps/extend/bisector.js"></script>
+    <script type="text/javascript" src="src/steps/extend/perpendicular_line.js"></script>
+    <style type="text/css">
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+        canvas {
+            display: block;
+            position: absolute;
+            background: #fefefe;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            left: 0;
+        }
+        #commands {
+            width: 300px;
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            box-shadow: 0 0 20px rgba(0,0,0,.3);
+            border-left: 1px solid #999;
+        }
+        #command-input {
+            display: block;
+            position: absolute;
+            border: none;
+            padding: 10px;
+            box-sizing: border-box;
+            position: absolute;
+            width: 100%;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            left: 0;
+            outline: none;
+            font-size: 16px;
+            resize: none;
+            font-family: consolas;
+        }
+        #paper {
+            position: absolute;
+            right: 300px;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            border-right: 1px solid #ccc;
+        }
+
+        #paper p {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            margin: 0;
+            font-size: 12px;
+            color: #ccc;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div id="commands">
+        <textarea id="command-input" placeholder="Command Here">pd 0 0 O
+pd 100 0 X
+pd 0 100 Y
+ld O X OX
+ld O Y OY</textarea>
+    </div>
+    <div id="paper">
+        <canvas></canvas>
+        <p>Ruler.js powered by Techird.</p>
+    </div>
+</body>
+<script type="text/javascript">
+    var canvas = document.querySelector('#paper canvas');
+    var ctx = canvas.getContext('2d');
+    var textarea = document.getElementById('command-input');
+    var ruler = new Ruler();
+
+    function render() {
+        var paper = document.getElementById('paper');
+        var width = canvas.width = paper.clientWidth;
+        var height = canvas.height = paper.clientHeight;
+        ctx.save();
+        ctx.translate((width >> 1) + 0.5, (height >> 1) + 0.5);
+        ruler.render(ctx, null, -width / 2, width / 2, -height / 2, height / 2);
+        ctx.restore();
+    }
+
+    function executeAllCommand() {
+        var commandLines = textarea.value.split('\n');
+
+        ruler.reset();
+        textarea.classList.remove('error');
+
+        try {
+            commandLines.forEach(function(command) {
+                if (/^\/\//.test(command) || !/\S/.test(command)) return;
+                ruler.exec(command.replace(/\s*\/\/.+$/, ''));
+            });
+            render();
+        } catch (e) {
+            textarea.classList.add('error');
+            /* global console: true */
+            console.log(e);
+        }
+
+        window.localStorage.rememberCommand = textarea.value;
+    }
+
+    var keys = {
+        38: 'up',
+        40: 'down'
+    };
+    textarea.onkeydown = function(e) {
+        if (!e.altKey || !keys[e.keyCode]) return;
+
+        e.preventDefault();
+
+        var start = textarea.selectionStart,
+            end = textarea.selectionEnd,
+            length = Math.max(end - start, 1);
+
+        var content = textarea.value;
+        var parts = [];
+
+        parts.push(content.substr(0, start));
+        parts.push(content.substr(start, length));
+        parts.push(content.substr(start + length));
+
+        var number = parseInt(parts[1]);
+
+        if (isNaN(number)) return;
+
+        switch (keys[e.keyCode]) {
+            case 'up': number++; break;
+            case 'down': number--; break;
+        }
+        number = number.toString();
+
+        parts[1] = number;
+
+        textarea.value = parts.join('');
+        textarea.setSelectionRange(start, start + number.length);
+
+        executeAllCommand();
+    };
+    
+    textarea.value = window.localStorage.rememberCommand || textarea.value;
+    executeAllCommand();
+    window.onresize = render;
+    textarea.oninput = executeAllCommand;
+
+</script>
+</html>
