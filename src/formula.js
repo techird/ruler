@@ -5,6 +5,13 @@ function(exportName) {
     var exports = exports || {};
 
     /**
+     * ruler command compiler
+     * 尺规作图类型推导命令编译器
+     * @author 王集鹄(wangjihu,http://weibo.com/zswang),刘家鸣(liujiaming,http://weibo.com/techird)
+     * @version 2014-11-06
+     */
+
+    /**
      * Variant Type 值类型
      */
     var VT_NUMBER = 'number';
@@ -68,10 +75,10 @@ function(exportName) {
             type: VT_LINE,
             operator: '*',
             attrs: [{
-                name: 'c1',
+                name: 'a1',
                 type: VT_ARC
             }, {
-                name: 'c2',
+                name: 'a2',
                 type: VT_ARC
             }]
         },
@@ -80,11 +87,11 @@ function(exportName) {
             type: VT_LINE,
             operator: '*',
             attrs: [{
-                name: 'arc',
-                type: VT_ARC
-            }, {
                 name: 'line',
                 type: VT_LINE
+            }, {
+                name: 'arc',
+                type: VT_ARC
             }]
         },
 
@@ -145,6 +152,9 @@ function(exportName) {
         /*</debug>*/
     };
 
+    /**
+     * 编译命令
+     */
     var build = function(text) {
         init();
 
@@ -185,7 +195,7 @@ function(exportName) {
          */
         var calc = function(formula) {
             /*<debug>*/
-            console.log('calc(%s)', JSON.stringify(formula));
+            // console.log('calc(%s)', JSON.stringify(formula));
             /*</debug>*/
 
             formula = formula.trim(); // 清除空格
@@ -208,7 +218,7 @@ function(exportName) {
 
             var calcExper = function(all, left, operator, right) {
                 /*<debug>*/
-                console.log('calcExper(*, %s, %s, %s)', JSON.stringify(left), JSON.stringify(operator), JSON.stringify(right));
+                // console.log('calcExper(*, %s, %s, %s)', JSON.stringify(left), JSON.stringify(operator), JSON.stringify(right));
                 /*</debug>*/
                 left = calc(left);
                 right = calc(right);
@@ -232,6 +242,12 @@ function(exportName) {
                     text: value,
                     value: value
                 };
+            } else if (/[\[\]]/.test(formula)) { // 存在下标计算
+                formula.replace(/^(.*)\[([^\[\]]+)\]/, function(all, left, index) {
+                    left = calc(left);
+                    index = calc(index);
+                    result = scan('[', left, index);
+                });
             } else if (/[,+\-*\/~]/.test(formula)) { // 存在操作符
                 // 运算符优先级
                 prioritys.forEach(function(priority) {
@@ -239,12 +255,6 @@ function(exportName) {
                         return true;
                     }
                     formula.replace(priority, calcExper);
-                });
-            } else if (/[\[\]]/.test(formula)) { // 存在下标计算
-                formula.replace(/^(.*)\[([^\[\]]+)\]/, function(all, left, index) {
-                    left = calc(left);
-                    index = calc(index);
-                    result = scan('[', left, index);
                 });
             }
             if (!result) {
