@@ -7,10 +7,10 @@ function(exportName) {
     /**
      * Variant Type 值类型
      */
-    VT_NUMBER = 'number';
-    VT_POINT = 'point';
-    VT_LINE = 'line';
-    VT_ARC = 'arc';
+    var VT_NUMBER = 'number';
+    var VT_POINT = 'point';
+    var VT_LINE = 'line';
+    var VT_ARC = 'arc';
 
     /**
      * 表达式类型
@@ -167,8 +167,11 @@ function(exportName) {
                 fn: inference.fn
             };
             var items = [left, right];
+            result.operands = [];
             inference.attrs.forEach(function(attr) {
-                result[attr.name] = items.shift();
+                var item = items.shift();
+                //result[attr.name] = item;
+                result.operands.push(item.text);
             });
             return result;
         };
@@ -250,9 +253,9 @@ function(exportName) {
             var name = '{' + (guid++) + '}';
             result.text = name;
             formulas[formula] = result;
-            if (result.fn) {
+            //if (result.fn) {
                 symbols[name] = result;
-            }
+            //}
             return result;
         };
 
