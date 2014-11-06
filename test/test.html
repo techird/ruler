@@ -53,7 +53,6 @@ xb=xaa[0]
 
     var steps = [];
     var settled = {};
-    var symbolMap = {};
 
     function buildPrev(symbal) {
 
@@ -65,11 +64,7 @@ xb=xaa[0]
 
         var symbol = symbols[name];
 
-        if (name.indexOf('{') === 0) {
-            symbolMap[symbol.text] = name;
-        }
-
-        name = symbolMap[name] || name;
+        name = symbol.name || name;
 
         if (symbol.type == 'number' &&  !symbol.operands) return;
 

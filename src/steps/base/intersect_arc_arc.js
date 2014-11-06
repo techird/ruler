@@ -12,7 +12,7 @@ Ruler.define('intersect_arc_arc', {
     command: 'aai',
 
     prev: ['Arc', 'Arc', 'Index'],
-    next: 'Point',
+    next: 'Points',
 
     /* http://mathworld.wolfram.com/Circle-CircleIntersection.html */
     go: function(a1, a2, index) {
@@ -26,11 +26,17 @@ Ruler.define('intersect_arc_arc', {
         var R = a1.r, r = a2.r, d = Math.sqrt(dx * dx + dy * dy);
         var root = (-d + r - R) * (-d - r + R) * (-d + r + R) * (d + r + R);
 
-        if (root < 0) return null;
+        if (root < 0) return [];
 
         var d2 = d + d;
 
         var x = (d * d - r * r + R * R) / d2;
+
+        // 相切
+        if (Ruler.isZero(root)) {
+            return [];
+        }
+
         var y = Ruler.isZero(root) ? 0 : (Math.sqrt(root) / d2) * (index > 0 ? 1 : -1);
     
         // 转换为原始坐标

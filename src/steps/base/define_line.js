@@ -9,8 +9,6 @@
 
 Ruler.define('define_line', {
 
-    command: 'ld',
-
     prev: ['Point', 'Point'],
     next: 'Line',
 

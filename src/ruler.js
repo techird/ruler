@@ -15,6 +15,7 @@ function use(ruleName) {
 }
 
 var NUMBER_TYPES = { Number:1, Distance: 1, Index: 1 };
+
 function _checkType(type, value) {
     if (type in NUMBER_TYPES) {
         if (type == 'Distance' && value && value.type == 'Distance') return true;

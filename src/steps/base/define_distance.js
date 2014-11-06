@@ -9,10 +9,8 @@
 
 Ruler.define('define_distance', {
 
-    command: 'dd',
-
     prev: ['Point', 'Point'],
-    next: 'Distance',
+    next: 'Number',
     
     go: function (p1, p2) {
         var dx = p1.x - p2.x,
