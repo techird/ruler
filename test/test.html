@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>Ruler Example</title>
     <script src="ruler.js"></script>
+    <script type="text/javascript" src="../src/ruler.js"></script>
     <style>
 textarea {
     width: 400px;
@@ -46,9 +47,58 @@ xal=l1*a2
 # 两个圆弧相交
 xaa=a1*a2
 
-    */});
-    document.querySelector('textarea').value = JSON.stringify(symbols, null, 2);
+xb=xaa[0]
 
+    */});
+   
+    var steps = [];
+    var settled = {};
+    var symbolMap = {};
+
+    function buildPrev(symbal) {
+        
+    }
+
+    function importStep(name) {
+
+        if (settled[name]) return;
+
+        var symbol = symbols[name];
+
+        if (name.indexOf('{') === 0) {
+            symbolMap[symbol.text] = name;
+        }
+
+        name = symbolMap[name] || name;
+
+        if (symbol.type == 'number' &&  !symbol.operands) return;
+
+        var prevs = [];
+        if (symbol.operands) {
+            symbol.operands.forEach(function(operand) {
+                if (symbols[operand].type == 'number' && !symbols[operand].operands) prevs.push(symbols[operand].value);
+                else {
+                    importStep(operand);
+                    prevs.push(operand);
+                }
+            });
+
+            settled[name] = name + '=' + symbol.fn + '(' + prevs.join(', ') + ')';
+        } else {
+            settled[name] = name + '=' + symbol.value;
+        }
+
+        steps.push(settled[name]);
+
+    }
+
+    for (var name in symbols) {
+        importStep(name);
+    }
+
+    console.log(symbols);
+
+    document.querySelector('textarea').value = steps.join('\n');
 }();
     </script>
 </body>
