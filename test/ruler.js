@@ -253,9 +253,7 @@ function(exportName) {
             var name = '{' + (guid++) + '}';
             result.text = name;
             formulas[formula] = result;
-            //if (result.fn) {
-                symbols[name] = result;
-            //}
+            symbols[name] = result;
             return result;
         };
 
@@ -279,8 +277,9 @@ function(exportName) {
                 if (/\(|\)/.test(expr)) {
                     throw new Error(expression);
                 }
-                symbols[name] = calc(expr);
-                symbols[name].variant = true;
+
+                formulas[name] = calc(expr);
+                formulas[name].name = name;
             }
         );
 
