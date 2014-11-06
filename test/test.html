@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Ruler Example</title>
+    <script src="ruler.js"></script>
+    <style>
+textarea {
+    width: 400px;
+    height: 600px;
+}
+    </style>
+</head>
+<body>
+    <textarea></textarea>
+    <script>
+void function(argument) {
+
+    var symbols = ruler.build(function() {/*!
+# 直接定义
+x=10
+y=20
+
+# 直接计算长度
+d=10,10~200,200
+
+# 定义点
+p1=x,y
+p2=x+30,y+100
+
+# 定义线
+l1=p1,p2
+l2=p1,(70,93)
+
+# 定义圆弧
+a1=x,y,300
+a2=x+30,y+100,d
+
+# 两条直线相交
+xll=l1*l2
+xll=l1*((11,100),(100,d))
+
+# 圆弧直线相交
+xal=l1*a2
+
+# 两个圆弧相交
+xaa=a1*a2
+
+    */});
+    document.querySelector('textarea').value = JSON.stringify(symbols, null, 2);
+
+}();
+    </script>
+</body>
+</html>

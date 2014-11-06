@@ -63,7 +63,6 @@
             border-right: 1px solid #ccc;
             transform: translate3d(0, 0, 0);
         }
-
         #paper p {
             position: absolute;
             right: 10px;
@@ -75,7 +74,6 @@
         .error {
             color: red;
         }
-
         #help-content {
             position: absolute;
             left: 0;
@@ -91,26 +89,21 @@
             background: #fff;
             font-size: 14px;
         }
-
         #help-content h2 {
             font-size: 18px;
             font-weight: normal;
             color: #69f;
-
             margin: 2em 0 1em;
         }
-
         #help-content table {
             border-collapse: collapse;
             font-family: consolas;
         }
-
         #help-content td, #help-content th {
             border: 1px solid #EEE;
             padding: 5px 10px;
             text-align: left;
         }
-
         #help-button {
             position: absolute;
             width: 24px;
@@ -268,7 +261,6 @@ lai T Cb 0 F!blue
     var ctx = canvas.getContext('2d');
     var textarea = document.getElementById('command-input');
     var ruler = new Ruler();
-
     function render() {
         var paper = document.getElementById('paper');
         var width = canvas.width = paper.clientWidth;
@@ -278,13 +270,10 @@ lai T Cb 0 F!blue
         ruler.render(ctx, null, -width / 2, width / 2, -height / 2, height / 2);
         ctx.restore();
     }
-
     function executeAllCommand() {
         var commandLines = textarea.value.split('\n');
-
         ruler.reset();
         textarea.classList.remove('error');
-
         try {
             commandLines.forEach(function(command) {
                 if (/^\/\//.test(command) || !/\S/.test(command)) return;
@@ -296,53 +285,40 @@ lai T Cb 0 F!blue
             /* global console: true */
             console.log(e);
         }
-
         window.localStorage.rememberCommand = textarea.value;
     }
-
     var keys = {
         38: 'up',
         40: 'down'
     };
     textarea.onkeydown = function(e) {
         if (!e.altKey || !keys[e.keyCode]) return;
-
         e.preventDefault();
-
         var start = textarea.selectionStart,
             end = textarea.selectionEnd,
             length = Math.max(end - start, 1);
-
         var content = textarea.value;
         var parts = [];
-
         parts.push(content.substr(0, start));
         parts.push(content.substr(start, length));
         parts.push(content.substr(start + length));
-
         var number = parseInt(parts[1]);
-
         if (isNaN(number)) return;
-
         switch (keys[e.keyCode]) {
             case 'up': number++; break;
             case 'down': number--; break;
         }
         number = number.toString();
-
         parts[1] = number;
-
         textarea.value = parts.join('');
         textarea.setSelectionRange(start, start + number.length);
-
         executeAllCommand();
     };
-    
+
     textarea.value = window.localStorage.rememberCommand || textarea.value;
     executeAllCommand();
     window.onresize = render;
     textarea.oninput = executeAllCommand;
-
     var hbutton = document.getElementById('help-button');
     hbutton.onclick = function() {
         var content = document.getElementById('help-content');
@@ -353,6 +329,5 @@ lai T Cb 0 F!blue
             hbutton.classList.remove('actived');
         }
     };
-
 </script>
 </html>

@@ -15,6 +15,7 @@ Ruler.define('define_arc', {
     next: 'Arc',
 
     go: function (center, r) {
+        console.log('go', center, r);
         return {
             x: center.x,
             y: center.y,
