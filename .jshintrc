@@ -21,6 +21,7 @@
         "Point",
         "Circle",
         "Line",
+        "getMousePosition",
         "console"
     ]
 }

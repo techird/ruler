@@ -33,7 +33,11 @@
         'steps/extend/perpendicular_line.js',
 
         'render.js',
-        'formula.js'
+        'formula.js',
+
+        'view.js',
+        'hover.js',
+        'drag.js'
     ];
 
     /* global module:true */

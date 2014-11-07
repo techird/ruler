@@ -7,11 +7,21 @@
  * @copyright: Baidu FEX, 2014
  */
 
-Ruler.prototype.enableHover = function() {
-    this.hoverEnabled = true;
-    
-};
+Ruler.prototype.enableHover = function(changeCallback) {
 
-Ruler.prototype.disableHover = function() {
-    this.hoverEnabled = false;
+    var ruler = this;
+    var canvas = this.canvas;
+
+    var lastHot = null;
+    canvas.addEventListener('mousemove', function(e) {
+        var p = ruler.getDrawingPosition(e.clientX, e.clientY);
+        var hot = ruler.hot(p.x, p.y);
+        if (hot != lastHot) {
+            ruler.render();
+            if (changeCallback) {
+                changeCallback(hot, lastHot);
+            }
+            lastHot = hot;
+        }
+    });
 };

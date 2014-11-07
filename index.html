@@ -8,6 +8,7 @@
         html, body {
             margin: 0;
             padding: 0;
+            -webkit-user-select: none;
         }
         canvas {
             display: block;
@@ -17,6 +18,7 @@
             top: 0;
             bottom: 0;
             left: 0;
+            -webkit-user-select: none;
         }
         #commands {
             width: 300px;
@@ -43,6 +45,7 @@
             font-size: 16px;
             resize: none;
             font-family: consolas;
+            -webkit-user-select: text;
         }
         #paper {
             position: absolute;
@@ -51,6 +54,7 @@
             left: 0;
             bottom: 0;
             border-right: 1px solid #ccc;
+            -webkit-user-select: none;
             transform: translate3d(0, 0, 0);
         }
         #paper p {
@@ -138,38 +142,16 @@
     var ctx = canvas.getContext('2d');
     var textarea = document.getElementById('command-input');
     var ruler = new Ruler(canvas);
-    var tx = 0, ty = 0;
 
-    function getMousePos(canvas, evt) {
-        var rect = canvas.getBoundingClientRect();
-        return {
-          x: evt.clientX - rect.left - tx,
-          y: evt.clientY - rect.top - ty
-        };
-    }
-
-    var lastHot = null;
-    canvas.onmousemove = function(e) {
-        var p = getMousePos(canvas, e);
-        var hot = ruler.hot(p.x, p.y);
-        if (hot != lastHot) {
-            render();
-            lastHot = hot;
-        }
-    };
+    ruler.enableView();
+    ruler.enableHover();
+    ruler.enableDrag();
 
     function render() {
         var paper = document.getElementById('paper');
-        var width = canvas.width = paper.clientWidth;
-        var height = canvas.height = paper.clientHeight;
-
-        tx = parseInt(width / 2);
-        ty = parseInt(height / 2);
-
-        ctx.save();
-        ctx.translate(tx + 0.5, ty + 0.5);
-        ruler.render(ctx, [-height / 2, width / 2,  height / 2, -width / 2], textarea.value);
-        ctx.restore();
+        canvas.width = paper.clientWidth;
+        canvas.height = paper.clientHeight;
+        ruler.render();
     }
     function executeAllCommand() {
         try {

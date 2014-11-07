@@ -1,6 +1,7 @@
 /* The Ruler Class */
 function Ruler(canvas) {
     this.steps = [];
+    this.canvas = canvas || null;
 }
 
 var TYPE_NUMBER = Ruler.TYPE_NUMBER = 'Number';
@@ -105,9 +106,10 @@ function Step(name, prevs) {
     this.prevs = prevs;
     this.nexts = [];
 
+    var currentStep = this;
     // 记住后驱
     prevs.forEach(function(prev) {
-        if (prev instanceof Step) prev.nexts.push(this);
+        if (prev instanceof Step) prev.nexts.push(currentStep);
     });
 
     var _result = null;
@@ -198,5 +200,4 @@ Ruler.prototype.hot = function(x, y) {
     } else {
         return this.hotStep = null;
     }
-
 };

@@ -8,7 +8,7 @@
  */
 
 Ruler.defaultStyle = {
-    'point-fill': 'red',
+    'point-fill': 'gray',
     'point-stroke': null,
     'point-stroke-width': 0,
     'point-size': 3,
@@ -26,9 +26,10 @@ Ruler.defaultStyle = {
 };
 
 Ruler.hotStyle = {
-    'point-stroke': 'yellow',
-    'point-stroke-width': 4,
-    'point-size': 4,
+    'point-fill': 'blue',
+    'point-stroke': 'rgba(200, 100, 100, .3)',
+    'point-stroke-width': 6,
+    'point-size': 3,
 
     'draggable-point-fill': 'white',
     'draggable-point-stroke': 'red',
@@ -36,27 +37,23 @@ Ruler.hotStyle = {
     'draggable-point-size': 6,
 
     'path-stroke': 'blue',
+    'path-stroke-width': 1,
     'path-hightlight': 'rgba(200, 100, 100, .3)',
-    'path-hightlight-width': 4,
+    'path-hightlight-width': 6,
     'path-label': '#999'
 };
 
 Ruler.hotPrevStyle = {
-    'point-fill': 'green',
-    'point-stroke': 'yellow',
-    'point-stroke-width': 2,
-    'point-size': 4,
+    'point-stroke': 'rgba(150, 150, 150, .4)',
+    'point-stroke-width': 6,
 
-    'draggable-point-fill': 'green',
-    'draggable-point-stroke': 'yellow',
-    'draggable-point-stroke-width': 4,
-    'draggable-point-size': 4,
+    'draggable-point-stroke': 'rgba(150, 150, 150, .4)',
+    'draggable-point-size': 6,
 
-    'path-stroke': 'green',
+    'path-stroke': 'gray',
     'path-stroke-width': 1,
-    'path-hightlight': 'rgba(100, 100, 100, .3)',
-    'path-hightlight-width': 3,
-    'path-label': '#999'
+    'path-hightlight': 'rgba(150, 150, 150, .3)',
+    'path-hightlight-width': 6
 };
 
 function renderPoint(point, step, ctx, style) {
@@ -84,9 +81,10 @@ function renderPoint(point, step, ctx, style) {
         ctx.fill();
     }
     if (label && step.resultName) {
-        ctx.font = '12px Arial';
+        ctx.font = '14px Arial';
         ctx.fillStyle = label;
-        ctx.fillText(step.resultName, point.x + size + 3, point.y - size - 1);
+        ctx.textBaseline = 'middle';
+        ctx.fillText(step.resultName, point.x + 10, point.y);
     }
 }
 
@@ -232,11 +230,27 @@ Ruler.prototype.loadStyleSheet = function(text) {
     String(text).replace(/^(.+?)(\{[\s\S]+?\})/gm, match);
 };
 
-Ruler.prototype.render = function(ctx, bounding) {
-    var canvas = ctx.canvas;
+Ruler.prototype.render = function(bounding) {
+    var canvas = this.canvas;
+    
+    if (!canvas) throw new Error('ruler canvas missing');
+
+    if (!this.canvasOffset) {
+        this.canvasOffset = [canvas.width / 2, canvas.height / 2];
+    }
+
+    var ctx = canvas.getContext('2d');
+
     var ruler = this;
 
-    bounding = bounding || [0, canvas.width, canvas.height, 0];
+    var offset = this.canvasOffset;
+
+    canvas.width = canvas.width;
+
+    ctx.save();
+    ctx.translate.apply(ctx, offset);
+
+    bounding = [-offset[1], canvas.width - offset[0], canvas.height - offset[1], -offset[0]];
 
     var hotStep = this.hotStep,
         hotPrevs = hotStep && hotStep.prevs;
@@ -251,11 +265,11 @@ Ruler.prototype.render = function(ctx, bounding) {
         var ah = a.result().hotPriority || 99999;
         var bh = b.result().hotPriority || 99999;
 
-        if (a == hotStep) ah = -1;
-        if (hotPrevs && hotPrevs.indexOf(a) != -1) ah = 0;
+        if (a == hotStep) ah = 0;
+        if (hotPrevs && hotPrevs.indexOf(a) != -1) ah = 1;
 
-        if (b == hotStep) bh = -1;
-        if (hotPrevs && hotPrevs.indexOf(b) != -1) bh = 0;
+        if (b == hotStep) bh = 0;
+        if (hotPrevs && hotPrevs.indexOf(b) != -1) bh = 1;
 
         return bh - ah;
     });
@@ -282,4 +296,19 @@ Ruler.prototype.render = function(ctx, bounding) {
             ctx.restore();
         }
     });
+
+    ctx.restore();
+};
+
+
+Ruler.prototype.getDrawingPosition = function(clientX, clientY) {
+    var canvas = this.canvas;
+    var rect = canvas.getBoundingClientRect();
+    var offset = this.canvasOffset || [0, 0];
+    var tx = offset[0];
+    var ty = offset[1];
+    return {
+       x: clientX - rect.left - tx,
+       y: clientY - rect.top - ty
+    };
 };
