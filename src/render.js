@@ -66,7 +66,7 @@ function renderPoint(point, step, ctx, style) {
     var strokeWidth = draggable ? style['draggable-point-stroke-width'] : style['point-stroke-width'];
 
     var label = style['point-label'];
-    
+
     ctx.beginPath();
     ctx.arc(point.x, point.y, size, 0, Math.PI * 2);
     ctx.closePath();
@@ -227,12 +227,12 @@ Ruler.prototype.loadStyleSheet = function(text) {
         });
     }
 
-    String(text).replace(/^(.+?)(\{[\s\S]+?\})/gm, match);
+    String(text).replace(/^([^()\n]+?)(\{[^]+?\})/gm, match);
 };
 
 Ruler.prototype.render = function(bounding) {
     var canvas = this.canvas;
-    
+
     if (!canvas) throw new Error('ruler canvas missing');
 
     if (!this.canvasOffset) {

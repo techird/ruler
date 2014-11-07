@@ -154,12 +154,17 @@
         ruler.render();
     }
     function executeAllCommand() {
+        /*<debug>*/
+        window.localStorage.rememberCommand = textarea.value;
+        /*</debug>*/
         try {
             ruler.parse(textarea.value);
             ruler.loadStyleSheet(textarea.value);
             render();
-            window.localStorage.rememberCommand = textarea.value;
             textarea.classList.remove('error');
+            /*<replace
+            window.localStorage.rememberCommand = textarea.value;
+            /replace>*/
         } catch (e) {
             console.warn(e.message, e);
             textarea.classList.add('error');

@@ -64,12 +64,14 @@ function() {
 
     /**
      * 编译命令
+     * @param{String} text 编译文本
      */
     var build = function(text) {
         init();
 
         var symbols = {};
         var formulas = {}; // 表达式缓存
+        var functions = {}; // 函数列表
         var guid = 0;
         var scan = function(operator, left, right) {
             /*<debug>*/
@@ -182,30 +184,88 @@ function() {
 
         var formulaRegex = /^\s*([\w_$]+)\s*=\s*(.+)\s*$/;
 
-        function parseLine(line) {
+        function parseLine(line, defname) {
             String(line).replace(formulaRegex, function(all, name, expression) {
-                    var replace = 1;
-                    var expr = expression;
-                    // 优先计算括号内的表达式
-                    while (replace) {
-                        replace = 0;
-                        expr = expr.replace(/\(([^()]*)\)/g, function(all, formula) {
-                            var data = calc(formula);
-                            replace++;
-                            return data.text;
-                        });
-                    }
-                    if (/\(|\)/.test(expr)) {
-                        throw new Error(expression);
-                    }
+                var replace = 1;
+                var expr = expression;
+                // 优先计算括号内的表达式
+                while (replace) {
+                    replace = 0;
+                    expr = expr.replace(/(\w+)?\s*\(([^()]*)\)/g, function(all, name, formula) {
+                        if (name) { // 处理函数
+                            var def = functions[name];
+                            if (!def) {
+                                throw new Error('"' + name + '" not define.');
+                            }
+                            var params = formula.split(/\s*,\s*/);
+                            if (def.params.length !== params.length) {
+                                throw new Error('"' + name + '" params.length.');
+                            }
 
-                    formulas[name] = calc(expr);
+                            var temp = name + (guid++) + '$';
+                            var text = '';
+                            params.forEach(function(item, index) {
+                                text += temp + def.params[index] + '=' + item + '\n';
+                            });
+
+                            text += def.body.replace(
+                                /[a-z]([\w$]*)/gi, function(all) {
+                                    if (all === 'return') {
+                                        return temp + '=';
+                                    }
+                                    if (functions[all]) {
+                                        return all;
+                                    }
+                                    if (all.indexOf('$') >= 0) {
+                                        return all;
+                                    }
+                                    return temp + all;
+                                }
+                            );
+                            text.split('\n').forEach(function(line, index) {
+                                try {
+                                    parseLine(line, temp);
+                                } catch (e) {
+                                    throw new Error('Parsing faild (line ' + index + '): ' + line);
+                                }
+                            });
+                            return (formulas[temp] || symbols[temp]).text;
+                        }
+
+                        var data = calc(formula);
+                        replace++;
+                        return data.text;
+                    });
+                }
+                if (/\(|\)/.test(expr)) {
+                    throw new Error(expression);
+                }
+
+                formulas[name] = calc(expr);
+                if (!defname) {
                     formulas[name].name = name;
                 }
-            );
+            });
         }
 
-        String(text).split('\n').forEach(function(line, index) {
+        text = String(text).replace(
+            /^\s*def[ \f\t\v]+(\w+)\(([\w,\s]*)\)\s*\{([^{}]*)\}/gm,
+            function(all, name, params, body, first) {
+                var head = text.substring(0, first);
+
+                functions[name] = {
+                    params: params.split(/\s*,\s*/),
+                    body: body
+                };
+
+                return body.replace(/[^\n]/g, ''); // 保留换行符
+            }
+        );
+        /*<debug>*/
+        // console.log('functions: %s', JSON.stringify(functions));
+        /*</debug>*/
+
+        text.split('\n').forEach(function(line, index) {
             try {
                 parseLine(line);
             } catch (e) {
@@ -228,7 +288,7 @@ function() {
 
             var symbol = symbols[name];
 
-            if (symbol.type == TYPE_NUMBER &&  !symbol.operands) return;
+            if (symbol.type == TYPE_NUMBER && !symbol.operands) return;
 
             var prevs = [];
 
