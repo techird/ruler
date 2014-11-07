@@ -1,7 +1,7 @@
 /**
  * @fileOverview
  *
- * 
+ * 求直线交点
  *
  * @author: techird
  * @copyright: Baidu FEX, 2014
@@ -9,10 +9,8 @@
 
 Ruler.define('intersect_line_line', {
 
-    command: 'lli',
-
-    prev: ['Line', 'Line'],
-    next: 'Point',
+    prev: [TYPE_LINE, TYPE_LINE],
+    next: TYPE_POINT,
 
     /* http://en.wikipedia.org/wiki/Line%E2%80%93line_intersection */
     go: function (l1, l2) {
@@ -29,10 +27,10 @@ Ruler.define('intersect_line_line', {
 
         if (Ruler.isZero(f)) return null;
 
-        return {
-            x: (a * m2 - m1 * b) / f,
-            y: (a * n2 - n1 * b) / f
-        };
+        return new Point(
+            (a * m2 - m1 * b) / f,
+            (a * n2 - n1 * b) / f
+        );
 
     }
 });

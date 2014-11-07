@@ -9,20 +9,10 @@
 
 Ruler.define('define_line', {
 
-    prev: ['Point', 'Point'],
-    next: 'Line',
+    prev: [TYPE_POINT, TYPE_POINT],
+    next: TYPE_LINE,
 
     go: function(p1, p2) {
-        var dx = p2.x - p1.x;
-        var dy = p2.y - p1.y;
-        if (Ruler.isZero(dx) && Ruler.isZero(dy)) return null;
-        return {
-            dx: dx,
-            dy: dy,
-            x1: p1.x,
-            x2: p2.x,
-            y1: p1.y,
-            y2: p2.y
-        };
+        return new Line(p1, p2);
     }
 });

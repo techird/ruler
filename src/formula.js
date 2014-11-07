@@ -1,8 +1,6 @@
 void
 
-function(exportName) {
-
-    var exports = exports || {};
+function() {
 
     /**
      * ruler command compiler
@@ -12,114 +10,17 @@ function(exportName) {
      */
 
     /**
-     * Variant Type 值类型
-     */
-    var VT_NUMBER = 'number';
-    var VT_POINT = 'point';
-    var VT_LINE = 'line';
-    var VT_ARC = 'arc';
-
-    /**
      * 表达式类型
      */
-    var symbolTypes = {
-        definePoint: {
-            type: VT_POINT,
-            operator: ',',
-            attrs: [{
-                name: 'x',
-                type: VT_NUMBER
-            }, {
-                name: 'y',
-                type: VT_NUMBER
-            }]
-        },
-
-        defineLine: {
-            type: VT_LINE,
-            operator: ',',
-            attrs: [{
-                name: 'p1',
-                type: VT_POINT
-            }, {
-                name: 'p2',
-                type: VT_POINT
-            }]
-        },
-
-        defineArc: {
-            type: VT_ARC,
-            operator: ',',
-            attrs: [{
-                name: 'center',
-                type: VT_POINT
-            }, {
-                name: 'radius',
-                type: VT_NUMBER
-            }]
-        },
-
-        distance: {
-            type: VT_NUMBER,
-            operator: '~',
-            attrs: [{
-                name: 'p1',
-                type: VT_POINT
-            }, {
-                name: 'p2',
-                type: VT_POINT
-            }]
-        },
-
-        intersectArcArc: {
-            type: VT_LINE,
-            operator: '*',
-            attrs: [{
-                name: 'a1',
-                type: VT_ARC
-            }, {
-                name: 'a2',
-                type: VT_ARC
-            }]
-        },
-
-        intersectLineArc: {
-            type: VT_LINE,
-            operator: '*',
-            attrs: [{
-                name: 'line',
-                type: VT_LINE
-            }, {
-                name: 'arc',
-                type: VT_ARC
-            }]
-        },
-
-        intersectLineLine: {
-            type: VT_POINT,
-            operator: '*',
-            attrs: [{
-                name: 'l1',
-                type: VT_LINE
-            }, {
-                name: 'l2',
-                type: VT_LINE
-            }]
-        },
-
-        indexOf: {
-            type: VT_NUMBER,
-            operator: '[',
-            attrs: [{
-                name: 'line',
-                type: VT_LINE
-            }, {
-                name: 'index',
-                type: VT_NUMBER,
-                min: 0,
-                max: 1
-            }]
-        }
+    var symbolOperator = {
+        define_point: ',',
+        define_line: ',',
+        define_circle: ',',
+        define_distance: '~',
+        intersect_circle_circle: '*',
+        intersect_line_circle: '*',
+        intersect_line_line: '*',
+        point_select: '['
     };
 
     /**
@@ -131,19 +32,27 @@ function(exportName) {
             return;
         }
         inferences = {};
-        for (var i in symbolTypes) {
-            var type = symbolTypes[i];
-            type.fn = i;
-            var attrTypes = type.attrs.map(function(attr) {
-                return attr.type;
-            });
-            var key1 = [type.operator, attrTypes].join();
-            var key2 = [type.operator, attrTypes.reverse()].join();
+        for (var stepName in symbolOperator) {
+            var operator = symbolOperator[stepName];
+            var stepDefine = Ruler.use(stepName);
+
+            var attrTypes = stepDefine.prev.slice();
+
+            var key1 = [operator, attrTypes].join();
+            var key2 = [operator, attrTypes.reverse()].join();
+
+            var type = {
+                type: stepDefine.next,
+                operator: operator,
+                attrs: attrTypes.slice(),
+                fn: stepName
+            };
 
             inferences[key1] = type;
+
             if (key1 !== key2) { // 类型有不同
                 type = JSON.parse(JSON.stringify(type));
-                type.attrs = type.attrs.reverse();
+                type.attrs = attrTypes.slice().reverse();
                 inferences[key2] = type;
             }
         }
@@ -169,7 +78,6 @@ function(exportName) {
             var inference = inferences[[operator, left.type, right.type]];
             if (!inference) {
                 throw new Error(left.type + operator + right.type);
-                return;
             }
             // inference.attrs
             result = {
@@ -223,10 +131,10 @@ function(exportName) {
                 left = calc(left);
                 right = calc(right);
                 if (/[+\-*\/]/.test(operator) && // 数值运算
-                    left.type === VT_NUMBER && right.type === VT_NUMBER) {
+                    left.type === TYPE_NUMBER && right.type === TYPE_NUMBER) {
                     var value = eval(left.value + operator + right.value);
                     result = {
-                        type: VT_NUMBER,
+                        type: TYPE_NUMBER,
                         text: value,
                         value: value
                     };
@@ -238,7 +146,7 @@ function(exportName) {
             if (/^[\d-*+\/\s.]+$/.test(formula)) { // 数学表达式
                 var value = eval(formula);
                 result = {
-                    type: VT_NUMBER,
+                    type: TYPE_NUMBER,
                     text: value,
                     value: value
                 };
@@ -258,7 +166,8 @@ function(exportName) {
                 });
             }
             if (!result) {
-                throw new Error(formula);
+                console.warn('formula parse failed: ' + formula);
+                return;
             }
             var name = '{' + (guid++) + '}';
             result.text = name;
@@ -267,47 +176,81 @@ function(exportName) {
             return result;
         };
 
-        String(text).replace(/^\s*([\w_$]+)\s*=\s*(.+)\s*$/gm,
-            function(all, name, expression) {
-                var replace = 1;
-                var expr = expression;
+        var formulaRegex = /^\s*([\w_$]+)\s*=\s*(.+)\s*$/;
 
-                // 优先计算括号内的表达式
-                while (replace) {
-                    replace = 0;
-                    expr = expr.replace(/\(([^()]*)\)/g, function(all, formula) {
-                        var data = calc(formula);
-                        if (!data) {
-                            throw new Error(formula);
-                        }
-                        replace++;
-                        return data.text;
-                    });
-                }
-                if (/\(|\)/.test(expr)) {
-                    throw new Error(expression);
-                }
+        function parseLine(line) {
+            String(line).replace(formulaRegex, function(all, name, expression) {
+                    var replace = 1;
+                    var expr = expression;
+                    // 优先计算括号内的表达式
+                    while (replace) {
+                        replace = 0;
+                        expr = expr.replace(/\(([^()]*)\)/g, function(all, formula) {
+                            var data = calc(formula);
+                            replace++;
+                            return data.text;
+                        });
+                    }
+                    if (/\(|\)/.test(expr)) {
+                        throw new Error(expression);
+                    }
 
-                formulas[name] = calc(expr);
-                formulas[name].name = name;
+                    formulas[name] = calc(expr);
+                    formulas[name].name = name;
+                }
+            );
+        }
+
+        String(text).split('\n').forEach(function(line, index) {
+            try {
+                parseLine(line);
+            } catch (e) {
+                throw new Error('Parsing faild (line ' + index + '): ' + line);
             }
-        );
+        });
 
         return symbols;
     };
 
-    exports.build = build;
+    Ruler.prototype.parse = function(text) {
+        var symbols = build(text);
 
-    if (typeof define === 'function') {
-        if (define.amd || define.cmd) {
-            define(function() {
-                return exports;
-            });
+        var settled = {};
+        var ruler = this;
+
+        function importStep(name) {
+
+            if (settled[name]) return;
+
+            var symbol = symbols[name];
+
+            if (symbol.type == TYPE_NUMBER &&  !symbol.operands) return;
+
+            var prevs = [];
+
+            if (symbol.operands) {
+
+                symbol.operands.forEach(function(operand) {
+                    if (symbols[operand].type == TYPE_NUMBER && !symbols[operand].operands) prevs.push(symbols[operand].value);
+                    else {
+                        importStep(operand);
+                        prevs.push(settled[operand]);
+                    }
+                });
+
+                var step = ruler.step(symbol.fn, prevs);
+                step.resultName = symbol.name || null;
+                settled[name] = step;
+            }
         }
-    } else if (typeof module !== 'undefined' && module.exports) {
-        module.exports = exports;
-    } else {
-        window[exportName] = exports;
-    }
 
-}('ruler');
+        this.reset();
+
+        for (var name in symbols) {
+            importStep(name);
+        }
+
+        return this.steps;
+    };
+
+}();

@@ -9,15 +9,10 @@
 
 Ruler.define('define_point', {
 
-    command: 'pd',
-
-    prev: ['Number', 'Number'],
-    next: 'Point',
+    prev: [TYPE_NUMBER, TYPE_NUMBER],
+    next: TYPE_POINT,
     
     go: function(x, y) {
-        return {
-            x: x,
-            y: y
-        };
+        return new Point(x, y);
     }
 });

@@ -10,6 +10,15 @@
     "browser": true,
     "boss": true,
     "predef": [
-        "Ruler"
+        "Ruler",
+        "TYPE_NUMBER",
+        "TYPE_POINT",
+        "TYPE_LINE",
+        "TYPE_CIRCLE",
+        "TYPE_POINTS",
+        "isZero",
+        "Point",
+        "Circle",
+        "Line"
     ]
 }

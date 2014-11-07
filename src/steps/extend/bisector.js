@@ -8,15 +8,13 @@
  */
 Ruler.define('bisector', {
 
-    command: 'bp',
-
-    prev: ['Point', 'Point'],
-    next: 'Point',
+    prev: [TYPE_POINT, TYPE_POINT],
+    next: TYPE_POINT,
 
     go: function(p1, p2) {
-        return {
-            x: (p1.x + p2.x) / 2,
-            y: (p1.y + p2.y) / 2
-        };
+        return new Point(
+            (p1.x + p2.x) / 2,
+            (p1.y + p2.y) / 2
+        );
     }
 });

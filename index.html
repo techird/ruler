@@ -3,17 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Ruler Example</title>
-    <script type="text/javascript" src="src/ruler.js"></script>
-    <script type="text/javascript" src="src/steps/base/define_arc.js"></script>
-    <script type="text/javascript" src="src/steps/base/define_distance.js"></script>
-    <script type="text/javascript" src="src/steps/base/define_line.js"></script>
-    <script type="text/javascript" src="src/steps/base/define_point.js"></script>
-    <script type="text/javascript" src="src/steps/base/intersect_arc_arc.js"></script>
-    <script type="text/javascript" src="src/steps/base/intersect_line_arc.js"></script>
-    <script type="text/javascript" src="src/steps/base/intersect_line_line.js"></script>
-    <script type="text/javascript" src="src/steps/extend/perpendicular_bisector.js"></script>
-    <script type="text/javascript" src="src/steps/extend/bisector.js"></script>
-    <script type="text/javascript" src="src/steps/extend/perpendicular_line.js"></script>
+    <script type="text/javascript" src="build/import.js"></script>
     <style type="text/css">
         html, body {
             margin: 0;
@@ -129,125 +119,48 @@
 </head>
 <body>
     <div id="commands">
-        <textarea id="command-input" placeholder="Command Here">// 水平辅助线
-pd -100 0 x-left&
-pd 100 0 x-right&
-ld x-left x-right x
+        <textarea id="command-input" placeholder="Command Here"># 直接定义
+x=10
+y=20
 
-// 两个圆是点定义
-pd -223 0 A
-pd -440 0 A1
-pd 230 0 B
-pd 140 0 B1
+# 直接计算长度
+d=10,10~200,200
 
-// 取半径
-dd A A1 ra
-dd B B1 rb
+# 定义点
+p1=x,y
+p2=x+30,y+100
 
-// 定义圆弧
-ad A ra Ca!red
-ad B rb Cb!blue
+# 定义线
+l1=p1,p2
+l2=p1,(70,93)
 
-// 作公切线
-bp A B M //中点
-ad2 M A C1
-ad A rb C2
-lai x C2 0 D
-ad3 A A1 D C3
-aai C3 C1 0 P
-ld A P AP
-lai AP Ca 0 Q!red
-pl AP Q T!green
-lai T Cb 0 F!blue
+# 定义圆弧
+a1=x,y,300
+a2=x+30,y+100,d
+
+# 两条直线相交
+xll=l1*l2
+xll=l1*((11,100),(100,d))
+
+# 圆弧直线相交
+xal=l1*a2
+
+# 两个圆弧相交
+xaa=a1*a2
+
+# 取下标
+xb=xaa[0]
+
+# 取下标
+i1=1
+xb1=xaa[i1]
+xb2=xaa[i1 - 1]
 </textarea>
     </div>
     <div id="help-content" style="display: none;">
         <h2>数值控制</h2>
         <p>文本框中光标选中数值后，使用 Alt + Up/Down 可以快速修改数值</p>
         <h2>命令列表</h2>
-        <table>
-            <thead>
-            <tr>
-            <th>Command</th>
-            <th>Format</th>
-            <th>Description</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-            <td>define_point</td>
-            <td>pd <code>x</code> <code>y</code> <code>p1</code>
-            </td>
-            <td>定义一个点 p1，点的坐标为 (x, y)</td>
-            </tr>
-            <tr>
-            <td>define_line</td>
-            <td>ld <code>p1</code> <code>p2</code> <code>l1</code>
-            </td>
-            <td>定义一条直线 l1 过点 p1 和点 p2</td>
-            </tr>
-            <tr>
-            <td>define_distance</td>
-            <td>dd <code>p1</code> <code>p2</code> <code>d1</code>
-            </td>
-            <td>定义一段距离 d1 表示点 p1 和点 p2 之间的距离</td>
-            </tr>
-            <tr>
-            <td>define_arc</td>
-            <td>ad <code>p1</code> <code>d1</code> <code>a1</code>
-            </td>
-            <td>定义圆弧 a1 以 p1 为圆心，d1 为半径</td>
-            </tr>
-            <tr>
-            <td>define_arc_2</td>
-            <td>ad2 <code>p1</code> <code>p2</code> <code>a1</code>
-            </td>
-            <td>定义圆弧 a1 以 p1 为圆心，以 p1 到 p2 之间的距离为半径</td>
-            </tr>
-            <tr>
-            <td>define_arc_3</td>
-            <td>ad3 <code>p1</code> <code>p2</code> <code>p3</code> <code>a1</code>
-            </td>
-            <td>定义圆弧 a1 以 p1 为圆心，以 p2 到 p3 之间的距离为半径</td>
-            </tr>
-            <tr>
-            <td>intersect_arc_arc</td>
-            <td>aai <code>a1</code> <code>a2</code> <code>index</code> <code>p1</code>
-            </td>
-            <td>计算圆弧 a1 和 a2 的交点 p1，交点有两个的时候，index 来选择交点（0 或 1）</td>
-            </tr>
-            <tr>
-            <td>intersect_line_arc</td>
-            <td>lai <code>l1</code> <code>a1</code> <code>index</code> <code>p1</code>
-            </td>
-            <td>计算直线 l1 和圆弧 a1 的交点 p1，交点有两个的时候，index 来选择交点（0 或 1）</td>
-            </tr>
-            <tr>
-            <td>intersect_line_line</td>
-            <td>lli <code>l1</code> <code>l2</code> <code>p1</code>
-            </td>
-            <td>计算直线 l1 和圆弧 l2 的交点 p1</td>
-            </tr>
-            <tr>
-            <td>bisector</td>
-            <td>bp <code>p1</code> <code>p2</code> <code>m1</code>
-            </td>
-            <td>定义点 p1 和点 p2 的中点 m1</td>
-            </tr>
-            <tr>
-            <td>perpendicular_bisector</td>
-            <td>pbl <code>p1</code> <code>p2</code> <code>l1</code>
-            </td>
-            <td>定义端点为 p1 和 p2 的线段的垂直平分线</td>
-            </tr>
-            <tr>
-            <td>perpendicular_line</td>
-            <td>pl <code>l1</code> <code>p1</code> <code>l2</code>
-            </td>
-            <td>过点 p1 作直线 l1 的垂线 l2</td>
-            </tr>
-            </tbody>
-        </table>
         <p>具体请查看 <a target="_blank" href="https://github.com/techird/ruler/tree/dev#命令">https://github.com/techird/ruler/tree/dev#命令</a></p>
     </div>
     <a id="help-button">?</a>
@@ -260,32 +173,48 @@ lai T Cb 0 F!blue
     var canvas = document.querySelector('#paper canvas');
     var ctx = canvas.getContext('2d');
     var textarea = document.getElementById('command-input');
-    var ruler = new Ruler();
+    var ruler = new Ruler(canvas);
+    var tx = 0, ty = 0;
+
+    function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+          x: evt.clientX - rect.left - tx,
+          y: evt.clientY - rect.top - ty
+        };
+    }
+
+    var lastHot = null;
+    canvas.onmousemove = function(e) {
+        var p = getMousePos(canvas, e);
+        var hot = ruler.hot(p.x, p.y);
+        if (hot != lastHot) {
+            render();
+            lastHot = hot;
+        }
+    };
+
     function render() {
         var paper = document.getElementById('paper');
         var width = canvas.width = paper.clientWidth;
         var height = canvas.height = paper.clientHeight;
+
+        tx = parseInt(width / 2);
+        ty = parseInt(height / 2);
+
         ctx.save();
-        ctx.translate((width >> 1) + 0.5, (height >> 1) + 0.5);
-        ruler.render(ctx, null, -width / 2, width / 2, -height / 2, height / 2);
+        ctx.translate(tx + 0.5, ty + 0.5);
+        ruler.render(ctx, [-height / 2, width / 2,  height / 2, -width / 2]);
         ctx.restore();
     }
     function executeAllCommand() {
-        var commandLines = textarea.value.split('\n');
-        ruler.reset();
-        textarea.classList.remove('error');
         try {
-            commandLines.forEach(function(command) {
-                if (/^\/\//.test(command) || !/\S/.test(command)) return;
-                ruler.exec(command.replace(/\s*\/\/.+$/, ''));
-            });
+            ruler.parse(textarea.value);
             render();
+            window.localStorage.rememberCommand = textarea.value;
         } catch (e) {
-            textarea.classList.add('error');
-            /* global console: true */
-            console.log(e);
+            console.warn(e.message, e);
         }
-        window.localStorage.rememberCommand = textarea.value;
     }
     var keys = {
         38: 'up',
@@ -316,10 +245,12 @@ lai T Cb 0 F!blue
     };
 
     textarea.value = window.localStorage.rememberCommand || textarea.value;
+
     executeAllCommand();
     window.onresize = render;
     textarea.oninput = executeAllCommand;
     var hbutton = document.getElementById('help-button');
+
     hbutton.onclick = function() {
         var content = document.getElementById('help-content');
         content.style.display = content.style.display == 'none' ? 'block' : 'none';

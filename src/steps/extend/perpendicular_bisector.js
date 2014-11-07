@@ -8,10 +8,8 @@
  */
 Ruler.define('perpendicular_bisector', {
 
-    command: 'pbl',
-
-    prev: ['Point', 'Point'],
-    next: 'Line',
+    prev: [TYPE_POINT, TYPE_POINT],
+    next: TYPE_LINE,
 
     go: function(p1, p2) {
         var define_line = Ruler.use('define_line');

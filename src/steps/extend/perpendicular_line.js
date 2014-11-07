@@ -8,10 +8,8 @@
  */
 Ruler.define('perpendicular_line', {
 
-    command: 'pl',
-
-    prev: ['Line', 'Point'],
-    next: 'Line',
+    prev: [TYPE_LINE, TYPE_POINT],
+    next: TYPE_LINE,
 
     go: function(line, point) {
         var x1 = point.x,
@@ -20,13 +18,6 @@ Ruler.define('perpendicular_line', {
         var x2 = line.dy + x1,
             y2 = line.dx + y1;
 
-        return {
-            x1: point.x,
-            y1: point.y,
-            x2: -line.dy + point.x,
-            y2: line.dx + point.y,
-            dx: -line.dy,
-            dy: line.dx
-        };
+        return new Line(point, new Point(x2, y2));
     }
 });
