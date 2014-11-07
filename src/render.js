@@ -11,11 +11,12 @@ Ruler.defaultStyle = {
     'point-fill': 'red',
     'point-stroke': null,
     'point-stroke-width': 0,
-    'point-size': 2,
+    'point-size': 3,
     'point-label': '#666',
 
     'draggable-point-fill': 'white',
-    'draggable-point-stroke': 2,
+    'draggable-point-stroke': 'red',
+    'draggable-point-stroke-width': 4,
     'draggable-point-size': 4,
     'draggable-point-label': '#666',
 
@@ -25,14 +26,16 @@ Ruler.defaultStyle = {
 };
 
 Ruler.hotStyle = {
-    // 'point-fill': 'red',
     'point-stroke': 'yellow',
-    'point-stroke-width': 2,
+    'point-stroke-width': 4,
     'point-size': 4,
-    // 'point-label': true,
+
+    'draggable-point-fill': 'white',
+    'draggable-point-stroke': 'red',
+    'draggable-point-stroke-width': 4,
+    'draggable-point-size': 6,
 
     'path-stroke': 'blue',
-    // 'path-stroke-width': 1,
     'path-hightlight': 'rgba(200, 100, 100, .3)',
     'path-hightlight-width': 4,
     'path-label': '#999'
@@ -43,7 +46,11 @@ Ruler.hotPrevStyle = {
     'point-stroke': 'yellow',
     'point-stroke-width': 2,
     'point-size': 4,
-    // 'point-label': true,
+
+    'draggable-point-fill': 'green',
+    'draggable-point-stroke': 'yellow',
+    'draggable-point-stroke-width': 4,
+    'draggable-point-size': 4,
 
     'path-stroke': 'green',
     'path-stroke-width': 1,
@@ -54,10 +61,13 @@ Ruler.hotPrevStyle = {
 
 function renderPoint(point, step, ctx, style) {
 
-    var size = style['point-size'];
-    var fill = style['point-fill'];
-    var stroke = style['point-stroke'];
-    var strokeWidth = style['point-stroke-width'];
+    var draggable = step.name == 'define_point';
+
+    var size = draggable ? style['draggable-point-size'] : style['point-size'];
+    var fill = draggable ? style['draggable-point-fill'] : style['point-fill'];
+    var stroke = draggable ? style['draggable-point-stroke'] : style['point-stroke'];
+    var strokeWidth = draggable ? style['draggable-point-stroke-width'] : style['point-stroke-width'];
+
     var label = style['point-label'];
     
     ctx.beginPath();
@@ -165,9 +175,66 @@ var rendererMap = {
     'Circle': renderCircle
 };
 
+var pseudos = {
+    'default': 'defaultStyle',
+    'hot': 'hotStyle',
+    'prev-hot': 'hotPrevStyle'
+};
+
+function addStyle(ruler, selector, defines) {
+    defines = parseStyleDefines(defines);
+
+    var pseudoName = pseudos[selector.toLowerCase().split('::')[1]];
+
+    if (pseudoName) {
+        ruler[pseudoName] = defines;
+    } else {
+        var parts = selector.split(':');
+        var name = parts[0];
+
+        if (parts.length == 2) {
+            pseudoName = pseudos[parts[1]];
+        }
+
+        var step = ruler.findStep(name);
+        if (!step) return;
+
+        if (pseudoName) {
+            step[pseudoName] = defines;
+        } else {
+            step.style = extend({}, step.style, defines);
+        }
+    }
+}
+
+function parseStyleDefines(defines) {
+    var result = {};
+
+    function match(all, name, value) {
+        var intValue = parseInt(value, 10);
+        result[name] = isNaN(intValue) ? value : intValue;
+    }
+
+    String(defines).replace(/\s+([\w-]+)\:\s*([\w\d#\(\)\.]+)/g, match);
+
+    return result;
+}
+
+Ruler.prototype.loadStyleSheet = function(text) {
+    var ruler = this;
+
+    function match(all, selectors, defines) {
+        selectors.split(',').forEach(function(selector) {
+            addStyle(ruler, selector.trim(), defines);
+        });
+    }
+
+    String(text).replace(/^(.+?)(\{[\s\S]+?\})/gm, match);
+};
+
 Ruler.prototype.render = function(ctx, bounding) {
     var canvas = ctx.canvas;
-    var extend = Ruler.extend;
+    var ruler = this;
 
     bounding = bounding || [0, canvas.width, canvas.height, 0];
 
@@ -181,7 +248,16 @@ Ruler.prototype.render = function(ctx, bounding) {
     var renderSteps = this.steps.slice();
 
     renderSteps.sort(function(a, b) {
-        return b.result().hotPriority - a.result().hotPriority;
+        var ah = a.result().hotPriority || 99999;
+        var bh = b.result().hotPriority || 99999;
+
+        if (a == hotStep) ah = -1;
+        if (hotPrevs && hotPrevs.indexOf(a) != -1) ah = 0;
+
+        if (b == hotStep) bh = -1;
+        if (hotPrevs && hotPrevs.indexOf(b) != -1) bh = 0;
+
+        return bh - ah;
     });
 
     renderSteps.forEach(function(step) {
@@ -190,12 +266,12 @@ Ruler.prototype.render = function(ctx, bounding) {
 
         if (!result) return;
 
-        var style = extend({}, Ruler.defaultStyle, step.style);
+        var style = extend({}, Ruler.defaultStyle, ruler.defaultStyle, step.style);
 
         if (hotStep == step) {
-            style = extend(style, Ruler.hotStyle);
+            style = extend(style, Ruler.hotStyle, ruler.hotStyle, step.hotStyle);
         } else if (hotPrevs && hotPrevs.indexOf(step) != -1) {
-            style = extend(style, Ruler.hotPrevStyle);
+            style = extend(style, Ruler.hotPrevStyle, ruler.hotPrevs, step.hotPrevStyle);
         }
 
         var renderer = rendererMap[step.resultType];

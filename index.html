@@ -119,43 +119,7 @@
 </head>
 <body>
     <div id="commands">
-        <textarea id="command-input" placeholder="Command Here"># 直接定义
-x=10
-y=20
-
-# 直接计算长度
-d=10,10~200,200
-
-# 定义点
-p1=x,y
-p2=x+30,y+100
-
-# 定义线
-l1=p1,p2
-l2=p1,(70,93)
-
-# 定义圆弧
-a1=x,y,300
-a2=x+30,y+100,d
-
-# 两条直线相交
-xll=l1*l2
-xll=l1*((11,100),(100,d))
-
-# 圆弧直线相交
-xal=l1*a2
-
-# 两个圆弧相交
-xaa=a1*a2
-
-# 取下标
-xb=xaa[0]
-
-# 取下标
-i1=1
-xb1=xaa[i1]
-xb2=xaa[i1 - 1]
-</textarea>
+        <textarea id="command-input" placeholder="Command Here"></textarea>
     </div>
     <div id="help-content" style="display: none;">
         <h2>数值控制</h2>
@@ -204,16 +168,19 @@ xb2=xaa[i1 - 1]
 
         ctx.save();
         ctx.translate(tx + 0.5, ty + 0.5);
-        ruler.render(ctx, [-height / 2, width / 2,  height / 2, -width / 2]);
+        ruler.render(ctx, [-height / 2, width / 2,  height / 2, -width / 2], textarea.value);
         ctx.restore();
     }
     function executeAllCommand() {
         try {
             ruler.parse(textarea.value);
+            ruler.loadStyleSheet(textarea.value);
             render();
             window.localStorage.rememberCommand = textarea.value;
+            textarea.classList.remove('error');
         } catch (e) {
             console.warn(e.message, e);
+            textarea.classList.add('error');
         }
     }
     var keys = {

@@ -17,8 +17,10 @@
         "TYPE_CIRCLE",
         "TYPE_POINTS",
         "isZero",
+        "extend",
         "Point",
         "Circle",
-        "Line"
+        "Line",
+        "console"
     ]
 }

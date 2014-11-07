@@ -14,12 +14,12 @@ function() {
      */
     var symbolOperator = {
         define_point: ',',
-        define_line: ',',
-        define_circle: ',',
+        define_line: '|',
+        define_circle: '@',
         define_distance: '~',
-        intersect_circle_circle: '*',
-        intersect_line_circle: '*',
-        intersect_line_line: '*',
+        intersect_circle_circle: '&',
+        intersect_line_circle: '&',
+        intersect_line_line: '&',
         point_select: '['
     };
 
@@ -53,6 +53,7 @@ function() {
             if (key1 !== key2) { // 类型有不同
                 type = JSON.parse(JSON.stringify(type));
                 type.attrs = attrTypes.slice().reverse();
+                type.reversed = true;
                 inferences[key2] = type;
             }
         }
@@ -85,6 +86,9 @@ function() {
                 fn: inference.fn
             };
             var items = [left, right];
+
+            if (inference.reversed) items = items.reverse();
+
             result.operands = [];
             inference.attrs.forEach(function(attr) {
                 var item = items.shift();
@@ -119,8 +123,8 @@ function() {
             var result;
             var prioritys = [
                 /^(.*)(~)(.*?)$/,
-                /^(.*)(,)(.*?)$/,
-                /^(.*)([*\/])(.*?)$/,
+                /^(.*)(,|@|\|)(.*?)$/,
+                /^(.*)([*\/&])(.*?)$/,
                 /^(.*)([+\-])(.*?)$/
             ];
 
@@ -150,13 +154,7 @@ function() {
                     text: value,
                     value: value
                 };
-            } else if (/[\[\]]/.test(formula)) { // 存在下标计算
-                formula.replace(/^(.*)\[([^\[\]]+)\]/, function(all, left, index) {
-                    left = calc(left);
-                    index = calc(index);
-                    result = scan('[', left, index);
-                });
-            } else if (/[,+\-*\/~]/.test(formula)) { // 存在操作符
+            } else if (/[\|@&,+\-*\/~]/.test(formula)) { // 存在操作符
                 // 运算符优先级
                 prioritys.forEach(function(priority) {
                     if (result) {
@@ -164,7 +162,13 @@ function() {
                     }
                     formula.replace(priority, calcExper);
                 });
-            }
+            } else if (/[\[\]]/.test(formula)) { // 存在下标计算
+                formula.replace(/^(.*)\[([^\[\]]+)\]/, function(all, left, index) {
+                    left = calc(left);
+                    index = calc(index);
+                    result = scan('[', left, index);
+                });
+            } 
             if (!result) {
                 console.warn('formula parse failed: ' + formula);
                 return;

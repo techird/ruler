@@ -1,5 +1,5 @@
 /* The Ruler Class */
-function Ruler() {
+function Ruler(canvas) {
     this.steps = [];
 }
 
@@ -34,14 +34,18 @@ function use(ruleName) {
 Ruler.use = use;
 
 /* 对象 extend */
-function extend(source, target) {
-    if (arguments.length > 2) {
-        return extend(source, extend.apply(null, [].slice.call(arguments, 1)));
-    }
-    if (!target) return source;
-    for (var p in target) {
-        if (target.hasOwnProperty(p)) source[p] = target[p];
-    }
+function extend(source) {
+
+    var extensions = [].slice.call(arguments, 1);
+
+    source = source || {};
+
+    extensions.forEach(function(extension) {
+        if (!extension) return;
+        for (var p in extension) {
+            if (extension.hasOwnProperty(p)) source[p] = extension[p];
+        }
+    });
     return source;
 }
 Ruler.extend = extend;
@@ -157,6 +161,12 @@ Ruler.prototype.step = function(name, prevs) {
     var step = new Step(name, prevs);
     this.steps.push(step);
     return step;
+};
+
+Ruler.prototype.findStep = function(resultName) {
+    for (var i = 0; i < this.steps.length; i++) {
+        if (this.steps[i].resultName == resultName) return this.steps[i];
+    }
 };
 
 Ruler.prototype.reset = function() {
