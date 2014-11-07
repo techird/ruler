@@ -122,8 +122,8 @@ function() {
 
             var result;
             var prioritys = [
-                /^(.*)(~)(.*?)$/,
                 /^(.*)(,|@|\|)(.*?)$/,
+                /^(.*)(~)(.*?)$/,
                 /^(.*)([*\/&])(.*?)$/,
                 /^(.*)([+\-])(.*?)$/
             ];
@@ -168,7 +168,7 @@ function() {
                     index = calc(index);
                     result = scan('[', left, index);
                 });
-            } 
+            }
             if (!result) {
                 console.warn('formula parse failed: ' + formula);
                 return;
