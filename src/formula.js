@@ -9,7 +9,7 @@ function() {
      * @version 2014-11-06
      */
 
-/**
+    /**
  * @example
 ```ruler
 def line(A, B) {
@@ -22,6 +22,7 @@ l2 = (100, 200) | (300, 100)
 l1 = line(p1, p2)
 ```
  */
+
     /**
      * 表达式类型
      */
@@ -81,10 +82,12 @@ l1 = line(p1, p2)
      */
     var build = function(text) {
         init();
+        var librarys = Ruler.librarys;
 
         var symbols = {};
         var formulas = {}; // 表达式缓存
         var functions = {}; // 函数列表
+        var imports = {}; // 引入类库
         var guid = 0;
         var scan = function(operator, left, right) {
             /*<debug>*/
@@ -122,7 +125,7 @@ l1 = line(p1, p2)
          */
         var calc = function(formula) {
             /*<debug>*/
-            // console.log('calc(%s)', JSON.stringify(formula));
+            // console.log('calc(' + JSON.stringify(formula) + ')');
             /*</debug>*/
 
             formula = formula.trim(); // 清除空格
@@ -198,6 +201,15 @@ l1 = line(p1, p2)
         var formulaRegex = /^\s*([\w_$]+)\s*=\s*(.+)\s*$/;
 
         function parseLine(line, defname) {
+            if (!line) {
+                return;
+            }
+            if (line.indexOf(';') >= 0) { // 兼容分号
+                line.split(/\s*;\s*/).forEach(function(item) {
+                    parseLine(item, defname);
+                });
+                return;
+            }
             String(line).replace(formulaRegex, function(all, name, expression) {
                 var replace = 1;
                 var expr = expression;
@@ -261,20 +273,39 @@ l1 = line(p1, p2)
             });
         }
 
-        text = String(text).replace(
-            /^\s*def[ \f\t\v]+(\w+)\s*\(([\w,\s]*)\)\s*\{([^{}]*)\}/gm,
-            function(all, name, params, body, first) {
-                var head = text.substring(0, first);
-                params = params.trim();
-                functions[name] = {
-                    params: params.split(/\s*,\s*/),
-                    body: body,
-                    name: name
-                };
+        var buildFunctions = function(text, lib) {
+            return String(text).replace(
+                /^\s*def[ \f\t\v]+(\w+)\s*\(([\w,\s]*)\)\s*\{([^{}]*)\}/gm,
+                function(all, name, params, body, first) {
+                    var head = text.substring(0, first);
+                    params = params.trim();
+                    functions[name] = {
+                        params: params.split(/\s*,\s*/),
+                        body: body,
+                        name: name,
+                        lib: lib
+                    };
 
-                return body.replace(/[^\n]/g, ''); // 保留换行符
+                    return all.replace(/[^\n]/g, ''); // 保留换行符
+                }
+            );
+        }
+
+        // 处理引入类库
+        text = String(text).replace(
+            /^\s*import[ \f\t\v]+(\w+)/gm,
+            function(all, name) {
+                if (!librarys[name]) {
+                    throw new Error('library "' + name + '" undefined.');
+                }
+                imports[name] = true;
+                buildFunctions(librarys[name], name);
+                return all.replace(/[^\n]/g, ''); // 保留换行符
             }
         );
+
+        // 处理函数定义
+        text = buildFunctions(text);
         /*<debug>*/
         // console.log('functions: %s', JSON.stringify(functions));
         /*</debug>*/
@@ -289,7 +320,8 @@ l1 = line(p1, p2)
                 throw error;
             }
         });
-        symbols['functions'] = functions;
+        symbols.functions = functions;
+        symbols.imports = imports;
         return symbols;
     };
 
@@ -349,6 +381,7 @@ l1 = line(p1, p2)
 
     Ruler.prototype.stringify = function() {
         var settled = this.settled;
+
         function stringifyStep(step, expand) {
 
             if (!isNaN(step)) {
@@ -388,9 +421,19 @@ l1 = line(p1, p2)
 
         var steps = this.steps;
         var functions = this.symbols.functions;
+        var imports = this.symbols.imports;
         var result = [];
+        // 处理引用
+        for (var key in imports) {
+            var lib = imports[key];
+            result.push('import ' + lib + '\n');
+        }
+        // 处理函数
         for (var key in functions) {
             var def = functions[key];
+            if (def.lib) { // 有来源库
+                continue;
+            }
             result.push('def ' + def.name + '(' + def.params.join(', ') + ') {' + def.body + '}\n');
         }
         var step, i;

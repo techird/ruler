@@ -33,6 +33,7 @@
         'steps/extend/perpendicular_line.js',
 
         'render.js',
+        'library.js',
         'formula.js',
 
         'view.js',
