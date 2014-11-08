@@ -1,0 +1,36 @@
+{
+    "name": "ruler",
+    "description": "尺规作图引擎",
+    "version": "0.0.0",
+    "homepage": "http://techird.com/ruler",
+    "main": "all.js",
+    "author": [
+        "techird <techird@qq.com>"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/techird/ruler.git"
+    },
+    "keywords": [
+        "ruler",
+        "graphic",
+        "shape"
+    ],
+    "bugs": {
+        "url": "https://github.com/techird/ruler/issues"
+    },
+    "license": "MIT",
+    "readmeFilename": "README.md",
+    "devDependencies": {
+        "mocha": "2.0.1",
+        "should": "4.1.0",
+        "uglify-js": "2.4.15",
+        "jdists": "0.1.10",
+        "jshint": "2.5.8"
+    },
+    "scripts": {
+        "test": "mocha -R spec && npm run coverage",
+        "dist": "jdists dev.html -o index.html && uglifyjs all.dev.js -o all.js -p 5 -c -m",
+        "lint": "jshint src/*.js *.json"
+    }
+}

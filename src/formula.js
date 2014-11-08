@@ -202,34 +202,30 @@ function() {
                                 throw new Error('"' + name + '" params.length.');
                             }
 
-                            var temp = name + (guid++) + '$';
+                            var instance = name + (guid++) + '$';
                             var text = '';
+                            // 参数列表转换为定义
                             params.forEach(function(item, index) {
-                                text += temp + def.params[index] + '=' + item + '\n';
+                                text += instance + def.params[index] + '=' + item + '\n';
                             });
-
-                            text += def.body.replace(
-                                /[a-z]([\w$]*)/gi, function(all) {
-                                    if (all === 'return') {
-                                        return temp + '=';
-                                    }
-                                    if (functions[all]) {
-                                        return all;
-                                    }
-                                    if (all.indexOf('$') >= 0) {
-                                        return all;
-                                    }
-                                    return temp + all;
+                            // 替换函数变量名
+                            text += def.body.replace(/[a-z$]([\w$]*)/gi, function(all) {
+                                if (all === 'return') {
+                                    return instance + '=';
                                 }
-                            );
+                                if (functions[all] || all.indexOf('$') >= 0) {
+                                    return all;
+                                }
+                                return instance + all;
+                            });
                             text.split('\n').forEach(function(line, index) {
                                 try {
-                                    parseLine(line, temp);
+                                    parseLine(line, instance);
                                 } catch (e) {
                                     throw new Error('Parsing faild (line ' + index + '): ' + line);
                                 }
                             });
-                            return (formulas[temp] || symbols[temp]).text;
+                            return (formulas[instance] || symbols[instance]).text;
                         }
 
                         var data = calc(formula);
