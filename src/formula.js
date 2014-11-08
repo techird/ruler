@@ -269,7 +269,10 @@ function() {
             try {
                 parseLine(line);
             } catch (e) {
-                throw new Error('Parsing faild (line ' + index + '): ' + line);
+                var error = new Error('Parsing faild (line ' + index + '): ' + line);
+                error.line = index;
+                error.innerError = e;
+                throw error;
             }
         });
 
@@ -315,6 +318,43 @@ function() {
         }
 
         return this.steps;
+    };
+
+    function wrap(formula) {
+        return '(' + formula + ')';
+    }
+
+    function stringifyStep(step, expand) {
+
+        if (!isNaN(step)) return step.toString();
+
+        if (expand !== true && step.resultName) return step.resultName;
+
+        var operator = symbolOperator[step.name];
+
+        if (operator) {
+
+            if (operator == '[') {
+                return stringifyStep(step.prevs[0]) + '[' + step.prevs[1] + ']';
+            }
+
+            if (operator === ',') operator = ', ';
+            else operator = ' ' + operator + ' ';
+            
+            var formula = step.prevs.map(stringifyStep).join(operator);
+            return expand === true ? formula : wrap(formula);
+        }
+
+        throw new Error('Error step: ', step);
+    }
+
+    Ruler.prototype.stringify = function() {
+        var steps = this.steps;
+        var result = [], step, i;
+        for (i = 0; step = steps[i]; i++) {
+            if (step.resultName) result.push(step.resultName + ' = ' + stringifyStep(step, true));
+        }
+        return result.join('\n');
     };
 
 }();

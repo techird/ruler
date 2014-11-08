@@ -3,127 +3,21 @@
 <head>
     <meta charset="utf-8">
     <title>Ruler Example</title>
+    <script type="text/javascript" src="lib/codemirror/lib/codemirror.js"></script>
+    <script type="text/javascript" src="lib/codemirror/addon/mode/simple.js"></script>
+    <script type="text/javascript" src="lib/codemirror/mode/xml/xml.js"></script>
+    <script type="text/javascript" src="lib/codemirror/mode/javascript/javascript.js"></script>
+    <script type="text/javascript" src="lib/codemirror/mode/css/css.js"></script>
+    <script type="text/javascript" src="lib/codemirror/mode/htmlmixed/htmlmixed.js"></script>
     <script type="text/javascript" src="build/import.js"></script>
-    <style type="text/css">
-        html, body {
-            margin: 0;
-            padding: 0;
-            -webkit-user-select: none;
-        }
-        canvas {
-            display: block;
-            position: absolute;
-            background: #fefefe;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            -webkit-user-select: none;
-        }
-        #commands {
-            width: 300px;
-            position: absolute;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            box-shadow: 0 0 20px rgba(0,0,0,.3);
-            border-left: 1px solid #999;
-        }
-        #command-input {
-            display: block;
-            position: absolute;
-            border: none;
-            padding: 10px;
-            box-sizing: border-box;
-            position: absolute;
-            width: 100%;
-            top: 0;
-            bottom: 0;
-            right: 0;
-            left: 0;
-            outline: none;
-            font-size: 16px;
-            resize: none;
-            font-family: consolas;
-            -webkit-user-select: text;
-        }
-        #paper {
-            position: absolute;
-            right: 300px;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            border-right: 1px solid #ccc;
-            -webkit-user-select: none;
-            transform: translate3d(0, 0, 0);
-        }
-        #paper p {
-            position: absolute;
-            right: 10px;
-            bottom: 10px;
-            margin: 0;
-            font-size: 12px;
-            color: #ccc;
-        }
-        .error {
-            color: red;
-        }
-        #help-content {
-            position: absolute;
-            left: 0;
-            right: 300px;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            transform: translate3d(0, 0, -1);
-            z-index: 1;
-            background: white;
-            padding: 10px 30px;
-            border-right: 1px solid #ccc;
-            background: #fff;
-            font-size: 14px;
-        }
-        #help-content h2 {
-            font-size: 18px;
-            font-weight: normal;
-            color: #69f;
-            margin: 2em 0 1em;
-        }
-        #help-content table {
-            border-collapse: collapse;
-            font-family: consolas;
-        }
-        #help-content td, #help-content th {
-            border: 1px solid #EEE;
-            padding: 5px 10px;
-            text-align: left;
-        }
-        #help-button {
-            position: absolute;
-            width: 24px;
-            height: 24px;
-            border-radius: 100%;
-            background: #69f;
-            right: 310px;
-            top: 10px;
-            z-index: 1;
-            cursor: pointer;
-            line-height: 26px;
-            color: white;
-            text-align: center;
-            font-family: Arial;
-        }
-        #help-button:hover {
-            background: #7AF;
-        }
-        #help-button:active, #help-button.actived {
-            background: #47d;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="lib/codemirror/lib/codemirror.css">
+    <link rel="stylesheet" type="text/css" href="lib/codemirror/theme/xq-light.css">
+    <link rel="stylesheet" type="text/css" href="assert/style.css">
 </head>
 <body>
-    <div id="commands">
-        <textarea id="command-input" placeholder="Command Here"></textarea>
+    <div id="source-code">
+        <div id="formula"></div>
+        <div id="style"></div>
     </div>
     <div id="help-content" style="display: none;">
         <h2>数值控制</h2>
@@ -137,15 +31,51 @@
         <p>Ruler.js powered by Techird.</p>
     </div>
 </body>
+<style>
+::default {
+    path-stroke: #DDD;
+}
+O, O:hot {
+    path-stroke: green;
+    path-stroke-width: 3;
+}
+</style>
 <script type="text/javascript">
+    /* global CodeMirror: true */
+
+    CodeMirror.defineSimpleMode('ruler', {
+        start: [
+            {regex: /\/\/.*/, token: "comment" },
+            {regex: /(\s*)(\w+)(\s*)(=)(\s*)/, token: [null, 'symbol', null, 'equal'] },
+            {regex: /[+-]?\d+(\.?\d+)?/, token: 'number' },
+            {regex: /[,|@&~]/, token: 'operator'},
+            {regex: /[\(\)\[\]]/, token: 'parentheses'},
+            {regex: /(\s*)([a-zA-Z_$]\w*)(\s*)/, token: [null, 'variable', null]}
+        ]
+    });
+
+    var sourceEditor = new CodeMirror(document.getElementById('formula'), {
+        lineNumbers: true,
+        mode: 'ruler',
+        value: window.localStorage.rememberSource || ''
+    });
+
+    var styleEditor = new CodeMirror(document.getElementById('style'), {
+        lineNumbers: true,
+        mode: 'css',
+        value: window.localStorage.rememberStyle || ''
+    });
+
+    sourceEditor.setSize('100%', '100%');
+    styleEditor.setSize('100%', '100%');
+
     var canvas = document.querySelector('#paper canvas');
     var ctx = canvas.getContext('2d');
-    var textarea = document.getElementById('command-input');
     var ruler = new Ruler(canvas);
 
     ruler.enableView();
     ruler.enableHover();
-    ruler.enableDrag();
+    ruler.enableDrag(updateSource);
 
     function render() {
         var paper = document.getElementById('paper');
@@ -153,56 +83,49 @@
         canvas.height = paper.clientHeight;
         ruler.render();
     }
-    function executeAllCommand() {
+    var lastErrorLineHandle = null;
+    var isUpdatingSource = false;
+    function compile() {
+        if (isUpdatingSource) return;
+        var source = sourceEditor.getValue();
         /*<debug>*/
-        window.localStorage.rememberCommand = textarea.value;
+        window.localStorage.rememberSource = source;
         /*</debug>*/
         try {
-            ruler.parse(textarea.value);
-            ruler.loadStyleSheet(textarea.value);
-            render();
-            textarea.classList.remove('error');
-            /*<replace
-            window.localStorage.rememberCommand = textarea.value;
-            /replace>*/
+            ruler.parse(source);
+            updateStyle();
+            if (lastErrorLineHandle) {
+                sourceEditor.removeLineClass(lastErrorLineHandle, 'wrap', 'error-line');
+                lastErrorLineHandle = null;
+            }
         } catch (e) {
+            if (e.line) {
+                lastErrorLineHandle = sourceEditor.addLineClass(e.line, 'wrap', 'error-line');
+            }
             console.warn(e.message, e);
-            textarea.classList.add('error');
         }
     }
-    var keys = {
-        38: 'up',
-        40: 'down'
-    };
-    textarea.onkeydown = function(e) {
-        if (!e.altKey || !keys[e.keyCode]) return;
-        e.preventDefault();
-        var start = textarea.selectionStart,
-            end = textarea.selectionEnd,
-            length = Math.max(end - start, 1);
-        var content = textarea.value;
-        var parts = [];
-        parts.push(content.substr(0, start));
-        parts.push(content.substr(start, length));
-        parts.push(content.substr(start + length));
-        var number = parseInt(parts[1]);
-        if (isNaN(number)) return;
-        switch (keys[e.keyCode]) {
-            case 'up': number++; break;
-            case 'down': number--; break;
-        }
-        number = number.toString();
-        parts[1] = number;
-        textarea.value = parts.join('');
-        textarea.setSelectionRange(start, start + number.length);
-        executeAllCommand();
-    };
 
-    textarea.value = window.localStorage.rememberCommand || textarea.value;
+    function updateSource() {
+        isUpdatingSource = true;
+        sourceEditor.setValue(window.localStorage.rememberSource = ruler.stringify());
+        isUpdatingSource = false;
+    }
 
-    executeAllCommand();
+    function updateStyle() {
+        var style = styleEditor.getValue();
+        ruler.loadStyleSheet(style);
+        render();
+        window.localStorage.rememberStyle = style;
+    }
+
+    compile();
+
+    sourceEditor.on('change', compile);
+    styleEditor.on('change', updateStyle);
+
     window.onresize = render;
-    textarea.oninput = executeAllCommand;
+
     var hbutton = document.getElementById('help-button');
 
     hbutton.onclick = function() {

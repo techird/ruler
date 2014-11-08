@@ -1,0 +1,11 @@
+{
+    "name": "ruler",
+    "description": "尺规作图引擎",
+    "version": "0.0.0",
+    "homepage": "http://techird.com/ruler",
+    "license": "MIT",
+    "private": false,
+    "dependencies": {
+        "codemirror": "4.7.0"
+    }
+}

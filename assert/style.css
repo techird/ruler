@@ -1,0 +1,147 @@
+/* 
+* @Author: techird
+* @Date:   2014/11/08 08:16
+* @Last Modified by:   techird
+* @Last Modified time: 2014/11/08 08:16
+*/
+html, body {
+    margin: 0;
+    padding: 0;
+    -webkit-user-select: none;
+}
+canvas {
+    display: block;
+    position: absolute;
+    background: #fefefe;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    -webkit-user-select: none;
+}
+#source-code {
+    width: 300px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    box-shadow: 0 0 20px rgba(0,0,0,.3);
+    border-left: 1px solid #999;
+    cursor: text;
+}
+#formula {
+    height: 65%;
+}
+#style {
+    height: 35%;
+    border-top: 1px solid #CCC;
+    box-sizing: border-box;
+}
+
+#source-code .CodeMirror pre {
+    font-size: 14px;
+    font-family: consolas 'Microsoft Yahei';
+    line-height: 1.3em;
+}
+
+#source-code .cm-comment {
+    color: rgb(188, 188, 188);
+    font-size: 12px;
+}
+#source-code .cm-symbol {
+    font-weight: bold;
+    font-style: italic;
+}
+#source-code .cm-number {
+    color: rgb(220, 0, 189);
+}
+#source-code .cm-operator {
+    color: blue;
+}
+#source-code .cm-variable {
+    text-decoration: underline;
+    color: black;
+    font-style: italic;
+}
+#source-code .cm-equal,
+#source-code .cm-parentheses {
+    color: rgb(187, 187, 187);
+}
+#source-code .error-line pre {
+    background: rgba(255, 0, 0, .1);
+}
+#source-code .error-line pre span {
+    color: red !important;
+}
+#paper {
+    position: absolute;
+    right: 300px;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    border-right: 1px solid #ccc;
+    -webkit-user-select: none;
+    transform: translate3d(0, 0, 0);
+}
+#paper p {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    margin: 0;
+    font-size: 12px;
+    color: #ccc;
+}
+.error {
+    color: red;
+}
+#help-content {
+    position: absolute;
+    left: 0;
+    right: 300px;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    transform: translate3d(0, 0, -1);
+    z-index: 1;
+    background: white;
+    padding: 10px 30px;
+    border-right: 1px solid #ccc;
+    background: #fff;
+    font-size: 14px;
+}
+#help-content h2 {
+    font-size: 18px;
+    font-weight: normal;
+    color: #69f;
+    margin: 2em 0 1em;
+}
+#help-content table {
+    border-collapse: collapse;
+    font-family: consolas;
+}
+#help-content td, #help-content th {
+    border: 1px solid #EEE;
+    padding: 5px 10px;
+    text-align: left;
+}
+#help-button {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 100%;
+    background: #69f;
+    right: 310px;
+    top: 10px;
+    z-index: 1;
+    cursor: pointer;
+    line-height: 26px;
+    color: white;
+    text-align: center;
+    font-family: Arial;
+}
+#help-button:hover {
+    background: #7AF;
+}
+#help-button:active, #help-button.actived {
+    background: #47d;
+}
