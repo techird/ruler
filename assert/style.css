@@ -1,4 +1,4 @@
-/* 
+/*
 * @Author: techird
 * @Date:   2014/11/08 08:16
 * @Last Modified by:   techird
@@ -44,6 +44,11 @@ canvas {
     line-height: 1.3em;
 }
 
+#source-code .cm-keyword {
+    font-weight: blue;
+    font-weight: bold;
+}
+
 #source-code .cm-comment {
     color: rgb(188, 188, 188);
     font-size: 12px;
@@ -59,8 +64,9 @@ canvas {
     color: blue;
 }
 #source-code .cm-variable {
-    text-decoration: underline;
+    /*text-decoration: underline;*/
     color: black;
+    font-weight: bold;
     font-style: italic;
 }
 #source-code .cm-equal,

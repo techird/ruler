@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Ruler Example</title>
-    <!--replace encoding="concat" js="all.dev.js" css="all.css"-->
+    <!--replace encoding="concat" js="all.js" css="all.css"-->
     <script type="text/javascript" src="lib/codemirror/lib/codemirror.js"></script>
     <script type="text/javascript" src="lib/codemirror/addon/mode/simple.js"></script>
     <script type="text/javascript" src="lib/codemirror/keymap/sublime.js"></script>
@@ -48,10 +48,11 @@ O, O:hot {
     CodeMirror.defineSimpleMode('ruler', {
         start: [
             {regex: /\/\/.*/, token: "comment" },
+            {regex: /(\s*)(def|return)/, token: "keyword" },
             {regex: /(\s*)(\w+)(\s*)(=)(\s*)/, token: [null, 'symbol', null, 'equal'] },
             {regex: /[+-]?\d+(\.?\d+)?/, token: 'number' },
             {regex: /[,|@&~]/, token: 'operator'},
-            {regex: /[\(\)\[\]]/, token: 'parentheses'},
+            {regex: /[\(\)\[\]\{\}]/, token: 'parentheses'},
             {regex: /(\s*)([a-zA-Z_$]\w*)(\s*)/, token: [null, 'variable', null]}
         ]
     });
@@ -91,11 +92,14 @@ O, O:hot {
     function compile() {
         if (isUpdatingSource) return;
         var source = sourceEditor.getValue();
-        /*<debug>*/
         window.localStorage.rememberSource = source;
-        /*</debug>*/
         try {
             ruler.parse(source);
+
+            /*<debug>*/
+            ruler.stringify();
+            /*</debug>*/
+
             updateStyle();
             sourceEditor.eachLine(function(line) {
                 sourceEditor.removeLineClass(line, 'wrap', 'error-line');

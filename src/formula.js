@@ -10,6 +10,20 @@ function() {
      */
 
     /**
+ * @example
+```ruler
+def line(A, B) {
+  return A | B
+}
+
+p1 = -42, 20
+p2 = 10, 30
+l2 = (100, 200) | (300, 100)
+l1 = line(p1, p2)
+```
+ */
+
+    /**
      * 表达式类型
      */
     var symbolOperator = {
@@ -68,10 +82,12 @@ function() {
      */
     var build = function(text) {
         init();
+        var librarys = Ruler.librarys;
 
         var symbols = {};
         var formulas = {}; // 表达式缓存
         var functions = {}; // 函数列表
+        var imports = {}; // 引入类库
         var guid = 0;
         var scan = function(operator, left, right) {
             /*<debug>*/
@@ -109,7 +125,7 @@ function() {
          */
         var calc = function(formula) {
             /*<debug>*/
-            // console.log('calc(%s)', JSON.stringify(formula));
+            // console.log('calc(' + JSON.stringify(formula) + ')');
             /*</debug>*/
 
             formula = formula.trim(); // 清除空格
@@ -185,6 +201,15 @@ function() {
         var formulaRegex = /^\s*([\w_$]+)\s*=\s*(.+)\s*$/;
 
         function parseLine(line, defname) {
+            if (!line) {
+                return;
+            }
+            if (line.indexOf(';') >= 0) { // 兼容分号
+                line.split(/\s*;\s*/).forEach(function(item) {
+                    parseLine(item, defname);
+                });
+                return;
+            }
             String(line).replace(formulaRegex, function(all, name, expression) {
                 var replace = 1;
                 var expr = expression;
@@ -225,7 +250,10 @@ function() {
                                     throw new Error('Parsing faild (line ' + index + '): ' + line);
                                 }
                             });
-                            return (formulas[instance] || symbols[instance]).text;
+                            var symbol = formulas[instance] || symbols[instance];
+                            symbol.formula = name + '(' + formula + ')';
+                            symbol.instance = instance;
+                            return symbol.text;
                         }
 
                         var data = calc(formula);
@@ -239,24 +267,45 @@ function() {
 
                 formulas[name] = calc(expr);
                 if (!defname) {
+                    formulas[name].source = all;
                     formulas[name].name = name;
                 }
             });
         }
 
+        var buildFunctions = function(text, lib) {
+            return String(text).replace(
+                /^\s*def[ \f\t\v]+(\w+)\s*\(([\w,\s]*)\)\s*\{([^{}]*)\}/gm,
+                function(all, name, params, body, first) {
+                    var head = text.substring(0, first);
+                    params = params.trim();
+                    functions[name] = {
+                        params: params.split(/\s*,\s*/),
+                        body: body,
+                        name: name,
+                        lib: lib
+                    };
+
+                    return all.replace(/[^\n]/g, ''); // 保留换行符
+                }
+            );
+        }
+
+        // 处理引入类库
         text = String(text).replace(
-            /^\s*def[ \f\t\v]+(\w+)\(([\w,\s]*)\)\s*\{([^{}]*)\}/gm,
-            function(all, name, params, body, first) {
-                var head = text.substring(0, first);
-
-                functions[name] = {
-                    params: params.split(/\s*,\s*/),
-                    body: body
-                };
-
-                return body.replace(/[^\n]/g, ''); // 保留换行符
+            /^\s*import[ \f\t\v]+(\w+)/gm,
+            function(all, name) {
+                if (!librarys[name]) {
+                    throw new Error('library "' + name + '" undefined.');
+                }
+                imports[name] = true;
+                buildFunctions(librarys[name], name);
+                return all.replace(/[^\n]/g, ''); // 保留换行符
             }
         );
+
+        // 处理函数定义
+        text = buildFunctions(text);
         /*<debug>*/
         // console.log('functions: %s', JSON.stringify(functions));
         /*</debug>*/
@@ -271,7 +320,8 @@ function() {
                 throw error;
             }
         });
-
+        symbols.functions = functions;
+        symbols.imports = imports;
         return symbols;
     };
 
@@ -283,19 +333,24 @@ function() {
 
         function importStep(name) {
 
-            if (settled[name]) return;
+            if (settled[name]) {
+                return;
+            }
 
             var symbol = symbols[name];
 
-            if (symbol.type == TYPE_NUMBER && !symbol.operands) return;
+            if (symbol.type == TYPE_NUMBER && !symbol.operands) {
+                return;
+            }
 
             var prevs = [];
 
             if (symbol.operands) {
 
                 symbol.operands.forEach(function(operand) {
-                    if (symbols[operand].type == TYPE_NUMBER && !symbols[operand].operands) prevs.push(symbols[operand].value);
-                    else {
+                    if (symbols[operand].type == TYPE_NUMBER && !symbols[operand].operands) {
+                        prevs.push(symbols[operand].value);
+                    } else {
                         importStep(operand);
                         prevs.push(settled[operand]);
                     }
@@ -303,6 +358,8 @@ function() {
 
                 var step = ruler.step(symbol.fn, prevs);
                 step.resultName = symbol.name || null;
+                step.source = symbol.source || null;
+                step.formula = symbol.formula || null;
                 settled[name] = step;
             }
         }
@@ -312,6 +369,8 @@ function() {
         for (var name in symbols) {
             importStep(name);
         }
+        this.symbols = symbols;
+        this.settled = settled;
 
         return this.steps;
     };
@@ -320,35 +379,68 @@ function() {
         return '(' + formula + ')';
     }
 
-    function stringifyStep(step, expand) {
+    Ruler.prototype.stringify = function() {
+        var settled = this.settled;
 
-        if (!isNaN(step)) return step.toString();
+        function stringifyStep(step, expand) {
 
-        if (expand !== true && step.resultName) return step.resultName;
-
-        var operator = symbolOperator[step.name];
-
-        if (operator) {
-
-            if (operator == '[') {
-                return stringifyStep(step.prevs[0]) + '[' + step.prevs[1] + ']';
+            if (!isNaN(step)) {
+                return step.toString();
             }
 
-            if (operator === ',') operator = ', ';
-            else operator = ' ' + operator + ' ';
-            
-            var formula = step.prevs.map(stringifyStep).join(operator);
-            return expand === true ? formula : wrap(formula);
+            if (expand !== true && step.resultName) {
+                return step.resultName;
+            }
+
+            if (step.formula) { // 函数定义
+                return step.formula.replace(/\{\w+\}/g, function(all) {
+                    return stringifyStep(settled[all]);
+                }).replace(/(\S),/g, '$1, ');
+            }
+
+            var operator = symbolOperator[step.name];
+
+            if (operator) {
+
+                if (operator == '[') {
+                    return stringifyStep(step.prevs[0]) + '[' + step.prevs[1] + ']';
+                }
+
+                if (operator === ',') {
+                    operator = ', ';
+                } else {
+                    operator = ' ' + operator + ' ';
+                }
+
+                var formula = step.prevs.map(stringifyStep).join(operator);
+                return expand === true ? formula : wrap(formula);
+            }
+
+            throw new Error('Error step: ', step);
         }
 
-        throw new Error('Error step: ', step);
-    }
-
-    Ruler.prototype.stringify = function() {
         var steps = this.steps;
-        var result = [], step, i;
+        var functions = this.symbols.functions;
+        var imports = this.symbols.imports;
+        var result = [];
+        // 处理引用
+        for (var key in imports) {
+            var lib = imports[key];
+            result.push('import ' + lib + '\n');
+        }
+        // 处理函数
+        for (var key in functions) {
+            var def = functions[key];
+            if (def.lib) { // 有来源库
+                continue;
+            }
+            result.push('def ' + def.name + '(' + def.params.join(', ') + ') {' + def.body + '}\n');
+        }
+        var step, i;
         for (i = 0; step = steps[i]; i++) {
-            if (step.resultName) result.push(step.resultName + ' = ' + stringifyStep(step, true));
+            if (step.resultName) {
+                result.push(step.resultName + ' = ' + stringifyStep(step, true));
+            }
         }
         return result.join('\n');
     };
