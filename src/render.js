@@ -259,7 +259,7 @@ Ruler.prototype.render = function(bounding) {
         hotPrevs = hotPrevs[0].prevs;
     }
 
-    var renderSteps = this.steps.slice();
+    var renderSteps = this.getAvailableSteps();
 
     renderSteps.sort(function(a, b) {
         var ah = a.result().hotPriority || 99999;
@@ -277,8 +277,6 @@ Ruler.prototype.render = function(bounding) {
     renderSteps.forEach(function(step) {
 
         var result = step.result();
-
-        if (!result) return;
 
         var style = extend({}, Ruler.defaultStyle, ruler.defaultStyle, step.style);
 

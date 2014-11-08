@@ -12,7 +12,7 @@ Ruler.define('point_select', {
     next: TYPE_POINT,
 
     go: function(points, index) {
-        return points[index];
+        return points[index] || null;
     }
 
 });

@@ -165,6 +165,10 @@ Ruler.prototype.step = function(name, prevs) {
     return step;
 };
 
+Ruler.prototype.getAvailableSteps = function() {
+    return this.steps.filter(function(step) { return step.result() !== null; })  
+};
+
 Ruler.prototype.findStep = function(resultName) {
     for (var i = 0; i < this.steps.length; i++) {
         if (this.steps[i].resultName == resultName) return this.steps[i];
@@ -178,7 +182,7 @@ Ruler.prototype.reset = function() {
 Ruler.prototype.hot = function(x, y) {
     var hots = [];
 
-    var steps = this.steps.slice();
+    var steps = this.getAvailableSteps();
 
     var step, result;
     while (step = steps.pop()) {

@@ -6,8 +6,7 @@
     <!--replace encoding="concat" js="all.dev.js" css="all.css"-->
     <script type="text/javascript" src="lib/codemirror/lib/codemirror.js"></script>
     <script type="text/javascript" src="lib/codemirror/addon/mode/simple.js"></script>
-    <script type="text/javascript" src="lib/codemirror/mode/xml/xml.js"></script>
-    <script type="text/javascript" src="lib/codemirror/mode/javascript/javascript.js"></script>
+    <script type="text/javascript" src="lib/codemirror/keymap/sublime.js"></script>
     <script type="text/javascript" src="lib/codemirror/mode/css/css.js"></script>
     <script type="text/javascript" src="lib/codemirror/mode/htmlmixed/htmlmixed.js"></script>
     <script type="text/javascript" src="build/import.js"></script>
@@ -59,13 +58,15 @@ O, O:hot {
     var sourceEditor = new CodeMirror(document.getElementById('formula'), {
         lineNumbers: true,
         mode: 'ruler',
-        value: window.localStorage.rememberSource || ''
+        value: window.localStorage.rememberSource || '',
+        keyMap: 'sublime'
     });
 
     var styleEditor = new CodeMirror(document.getElementById('style'), {
         lineNumbers: true,
         mode: 'css',
-        value: window.localStorage.rememberStyle || ''
+        value: window.localStorage.rememberStyle || '',
+        keyMap: 'sublime'
     });
 
     sourceEditor.setSize('100%', '100%');
@@ -95,8 +96,8 @@ O, O:hot {
         try {
             ruler.parse(source);
             updateStyle();
-            [].slice.call(document.querySelectorAll('#formula .error-line')).forEach(function(line) {
-                line.classList.remove('error-line');
+            sourceEditor.eachLine(function(line) {
+                sourceEditor.removeLineClass(line, 'wrap', 'error-line');
             });
         } catch (e) {
             if (e.line) {
