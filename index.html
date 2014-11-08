@@ -83,7 +83,6 @@ O, O:hot {
         canvas.height = paper.clientHeight;
         ruler.render();
     }
-    var lastErrorLineHandle = null;
     var isUpdatingSource = false;
     function compile() {
         if (isUpdatingSource) return;
@@ -94,13 +93,12 @@ O, O:hot {
         try {
             ruler.parse(source);
             updateStyle();
-            if (lastErrorLineHandle) {
-                sourceEditor.removeLineClass(lastErrorLineHandle, 'wrap', 'error-line');
-                lastErrorLineHandle = null;
-            }
+            [].slice.call(document.querySelectorAll('#formula .error-line')).forEach(function(line) {
+                line.classList.remove('error-line');
+            });
         } catch (e) {
             if (e.line) {
-                lastErrorLineHandle = sourceEditor.addLineClass(e.line, 'wrap', 'error-line');
+                sourceEditor.addLineClass(e.line, 'wrap', 'error-line');
             }
             console.warn(e.message, e);
         }
