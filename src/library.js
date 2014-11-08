@@ -1,10 +1,6 @@
 void
 function() {
-    /**
-     * 格式化函数
-     * @param {String} template 模板
-     * @param {Object} json 数据项
-     */
+
     function format(template, json) {
         /*<debug>*/
         if (typeof template === 'function') { // 函数多行注释处理
