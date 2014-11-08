@@ -73,14 +73,14 @@ function validateStep(name, prevTypes, prevValues) {
 
     /* validate length */
     if (prevValues.length != prevTypes.length) {
-        throw new Error(printf(LENGTH_MISMATCH_ERR, 
+        throw new Error(printf(LENGTH_MISMATCH_ERR,
             name, prevTypes.length, prevValues.length));
     }
 
     /* validate type */
     for (var i = 0; i < prevTypes.length; i++) {
         if (!checkType(prevTypes[i], prevValues[i])) {
-            throw new Error(printf(TYPE_MISMATCH_ERR, 
+            throw new Error(printf(TYPE_MISMATCH_ERR,
                 name, prevTypes[i], prevValues[i]));
         }
     }
@@ -142,18 +142,18 @@ function Step(name, prevs) {
     this.rebuild = function(modifier) {
         _result = null;
 
-        if (typeof(modifier) == 'function') {
+        if (typeof modifier === 'function') {
             modifier(prevs);
         }
 
         if (this.nexts.length) {
-            // 自顶向下 rebuild 
+            // 自顶向下 rebuild
             this.nexts.forEach(function(next) {
                 next.rebuild();
             });
         } else {
             // 自底向上重算
-            this.result();            
+            this.result();
         }
 
     };

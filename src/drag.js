@@ -23,7 +23,10 @@ Ruler.prototype.enableDrag = function(draggingCallback) {
         if (hot && hot.name == 'define_point') {
             draggingStep = hot;
             downPrevs = draggingStep.prevs.slice();
-            downPosition = {x: e.clientX, y: e.clientY};
+            downPosition = {
+                x: e.clientX,
+                y: e.clientY
+            };
             ruler.isDragging = true;
         }
     });
