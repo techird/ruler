@@ -298,7 +298,7 @@ l1 = line(p1, p2)
                 if (!librarys[name]) {
                     throw new Error('library "' + name + '" undefined.');
                 }
-                imports[name] = true;
+                imports[name] = name;
                 buildFunctions(librarys[name], name);
                 return all.replace(/[^\n]/g, ''); // 保留换行符
             }
@@ -395,7 +395,7 @@ l1 = line(p1, p2)
             if (step.formula) { // 函数定义
                 return step.formula.replace(/\{\w+\}/g, function(all) {
                     return stringifyStep(settled[all]);
-                }).replace(/(\S),/g, '$1, ');
+                }).replace(/,(\S)/g, ', $1').replace(/\s+,/g, ',');
             }
 
             var operator = symbolOperator[step.name];
