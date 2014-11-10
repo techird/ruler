@@ -75,7 +75,7 @@ O, O:hot {
     CodeMirror.defineSimpleMode('ruler', {
         start: [
             {regex: /\/\/.*/, token: "comment" },
-            {regex: /(\s*)(def|return)/, token: "keyword" },
+            {regex: /(\s*)(def|return|import)/, token: "keyword" },
             {regex: /(\s*)(\w+)(\s*)(=)(\s*)/, token: [null, 'symbol', null, 'equal'] },
             {regex: /[+-]?\d+(\.?\d+)?/, token: 'number' },
             {regex: /[,|@&~]/, token: 'operator'},
