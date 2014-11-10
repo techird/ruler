@@ -7,7 +7,7 @@
  * @copyright: Baidu FEX, 2014
  */
 
-Ruler.prototype.enableDrag = function(draggingCallback) {
+Ruler.prototype.enableDrag = function(dragStart, dragMove, dragEnd) {
     var canvas = this.canvas;
     var ruler = this;
 
@@ -28,6 +28,9 @@ Ruler.prototype.enableDrag = function(draggingCallback) {
                 y: e.clientY
             };
             ruler.isDragging = true;
+            if (dragStart) {
+                dragStart(draggingStep);
+            }
         }
     });
 
@@ -40,10 +43,11 @@ Ruler.prototype.enableDrag = function(draggingCallback) {
             prevs[1] = downPrevs[1] + dy;
         });
         ruler.render();
-        if (draggingCallback) draggingCallback(draggingStep);
+        if (dragMove) dragMove(draggingStep);
     });
 
     window.addEventListener('mouseup', function(e) {
+        if (dragEnd) dragEnd(draggingStep);
         draggingStep = null;
         ruler.isDragging = false;
     });

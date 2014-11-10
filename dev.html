@@ -15,6 +15,8 @@
     <script type="text/javascript" src="src/line.js"></script>
     <script type="text/javascript" src="src/circle.js"></script>
     <script type="text/javascript" src="src/matrix.js"></script>
+    <script type="text/javascript" src="src/step.js"></script>
+
     <script type="text/javascript" src="src/steps/base/define_point.js"></script>
     <script type="text/javascript" src="src/steps/base/define_line.js"></script>
     <script type="text/javascript" src="src/steps/base/define_circle.js"></script>
@@ -26,9 +28,11 @@
     <script type="text/javascript" src="src/steps/extend/bisector.js"></script>
     <script type="text/javascript" src="src/steps/extend/perpendicular_bisector.js"></script>
     <script type="text/javascript" src="src/steps/extend/perpendicular_line.js"></script>
+
     <script type="text/javascript" src="src/render.js"></script>
     <script type="text/javascript" src="src/library.js"></script>
     <script type="text/javascript" src="src/formula.js"></script>
+    <script type="text/javascript" src="src/hot.js"></script>
     <script type="text/javascript" src="src/view.js"></script>
     <script type="text/javascript" src="src/hover.js"></script>
     <script type="text/javascript" src="src/drag.js"></script>
@@ -103,7 +107,7 @@ O, O:hot {
 
     ruler.enableView();
     ruler.enableHover();
-    ruler.enableDrag(updateSource);
+    ruler.enableDrag(null, null, updateSource);
 
     function render() {
         var paper = document.getElementById('paper');

@@ -227,6 +227,15 @@ Ruler.prototype.loadStyleSheet = function(text) {
         });
     }
 
+    // clear up style
+    var cleanTargets = [this].concat(this.steps);
+    cleanTargets.forEach(function(target) {
+        target.style = null;
+        target.defaultStyle = null;
+        target.hotStyle = null;
+        target.hotPrevStyle = null;
+    });
+
     String(text).replace(/^([^()\n]+?)(\{[^]+?\})/gm, match);
 };
 
