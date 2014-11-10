@@ -47,7 +47,7 @@ Ruler.prototype.enableDrag = function(dragStart, dragMove, dragEnd) {
     });
 
     window.addEventListener('mouseup', function(e) {
-        if (dragEnd) dragEnd(draggingStep);
+        if (draggingStep && dragEnd) dragEnd(draggingStep);
         draggingStep = null;
         ruler.isDragging = false;
     });
