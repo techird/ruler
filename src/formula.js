@@ -328,6 +328,8 @@ l1 = line(p1, p2)
     Ruler.prototype.parse = function(text) {
         var symbols = build(text);
 
+        console.log(symbols);
+
         var settled = {};
         var ruler = this;
 

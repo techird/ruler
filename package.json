@@ -30,7 +30,7 @@
     },
     "scripts": {
         "test": "mocha -R spec && npm run coverage",
-        "dist": "jdists dev.html -o index.html && uglifyjs all.js -o all.js -p 5 -c -m",
+        "dist": "jdists index.html -o release/index.html && uglifyjs release/all.js -o release/all.js -p 5 -c -m",
         "lint": "jshint src/*.js *.json"
     }
 }

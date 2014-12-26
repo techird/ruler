@@ -137,6 +137,10 @@ function Step(name, prevs) {
         }
 
     };
+
+    this.remove = function() {
+
+    }
 }
 
 Ruler.prototype.step = function(name, prevs) {
